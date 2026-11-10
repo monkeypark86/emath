@@ -1,0 +1,8 @@
+{
+  "name": "小象速算 - 小学生数学口算与智能错题本",
+  "description": "专为小学生打造的趣味数学口算速练与错题智能分析系统，涵盖加减乘除、5秒倒计时极速挑战、自动错题集、家长学情看板与移动端同步随练。",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
