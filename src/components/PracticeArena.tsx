@@ -764,58 +764,6 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
               </span>
             </div>
           </div>
-
-          {/* 学习中心与功能导航 */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
-            <div
-              onClick={() => onSelectTab?.('banks')}
-              className="cursor-pointer bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl p-4 shadow-2xs hover:shadow-sm transition-all flex flex-col items-center text-center group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
-                📚
-              </div>
-              <h4 className="font-bold text-xs text-slate-800">题库管理与组卷</h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">自定义出题与打印试卷</p>
-            </div>
-
-            <div
-              onClick={() => onSelectTab?.('mistakes')}
-              className="cursor-pointer bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl p-4 shadow-2xs hover:shadow-sm transition-all flex flex-col items-center text-center group relative"
-            >
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
-                📝
-              </div>
-              <h4 className="font-bold text-xs text-slate-800">智能错题集</h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">攻克薄弱点与重练</p>
-              {unmasteredMistakeCount > 0 && (
-                <span className="absolute top-2 right-2 text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-full font-mono">
-                  {unmasteredMistakeCount}
-                </span>
-              )}
-            </div>
-
-            <div
-              onClick={() => onSelectTab?.('parent')}
-              className="cursor-pointer bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl p-4 shadow-2xs hover:shadow-sm transition-all flex flex-col items-center text-center group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
-                📊
-              </div>
-              <h4 className="font-bold text-xs text-slate-800">家长学情看板</h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">周报、统计与成长勋章</p>
-            </div>
-
-            <div
-              onClick={() => onSelectTab?.('mobile')}
-              className="cursor-pointer bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl p-4 shadow-2xs hover:shadow-sm transition-all flex flex-col items-center text-center group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
-                📱
-              </div>
-              <h4 className="font-bold text-xs text-slate-800">手机随身练</h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">扫码多端同步错题</p>
-            </div>
-          </div>
         </div>
       ) : (
         /* Active Practice Arena (极致纯净免干扰) */
