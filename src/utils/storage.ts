@@ -11,7 +11,8 @@ import {
   StudentProfile,
   StudentPreferences
 } from '../types/math';
-import { PRESET_QUESTION_BANKS } from './mathGenerator';
+import { PRESET_QUESTION_BANKS, localizeMethodTip, localizeDifficultyGrade, localizeExplanation } from './mathGenerator';
+import { getLang, tr } from '../i18n';
 
 const MISTAKES_KEY = 'math_mistakes_v1';
 const SESSIONS_KEY = 'math_sessions_v1';
@@ -88,26 +89,69 @@ export function removeCustomManualQuestion(id: string): void {
 
 export function formatGradeLabel(grade?: GradeLevel): string {
   switch (grade) {
-    case 'grade1': return '一年级';
-    case 'grade2': return '二年级';
-    case 'grade3': return '三年级';
-    case 'grade4': return '四年级';
-    case 'grade5_6': return '五/六年级';
-    case 'custom': return '自定义练习';
-    default: return '二年级';
+    case 'grade1': return tr('一年级', 'Grade 1');
+    case 'grade2': return tr('二年级', 'Grade 2');
+    case 'grade3': return tr('三年级', 'Grade 3');
+    case 'grade4': return tr('四年级', 'Grade 4');
+    case 'grade5_6': return tr('五/六年级', 'Grade 5–6');
+    case 'custom': return tr('自定义练习', 'Custom');
+    default: return tr('二年级', 'Grade 2');
   }
 }
 
 export function formatGradeDetail(grade?: GradeLevel): string {
   switch (grade) {
-    case 'grade1': return '20以内进退位加减';
-    case 'grade2': return '100以内&九九乘除';
-    case 'grade3': return '千以内乘除速算';
-    case 'grade4': return '多位数巧算简算';
-    case 'grade5_6': return '四则混合运算';
-    case 'custom': return '自选综合难度';
-    default: return '100以内&九九乘除';
+    case 'grade1': return tr('20以内进退位加减', 'Add & sub within 20');
+    case 'grade2': return tr('100以内&九九乘除', 'Within 100 & times tables');
+    case 'grade3': return tr('千以内乘除速算', 'Multi-digit × & ÷');
+    case 'grade4': return tr('多位数巧算简算', 'Mental math shortcuts');
+    case 'grade5_6': return tr('四则混合运算', 'Mixed 4 operations');
+    case 'custom': return tr('自选综合难度', 'Custom difficulty');
+    default: return tr('100以内&九九乘除', 'Within 100 & times tables');
   }
+}
+
+const SEEDED_TEXT_PAIRS: [string, string][] = [
+  ['挑选一本喜欢的科普绘本', 'Pick a favorite science picture book'],
+  ['去游乐园玩旋转木马', 'Ride the carousel at the amusement park'],
+  ['去游乐园玩', 'Trip to the amusement park'],
+  ['周末去游乐园或买心仪绘本', 'Amusement park trip or favorite book'],
+  ['每天坚持口算，我是速算小达人！', 'Practice every day — I am a math star!'],
+  ['凑十破十法，每天进步一点点！', 'Make-10 & Break-10, getting better every day!'],
+  ['乘除口诀记得牢，立式计算快又准！', 'Master times tables, fast & accurate!'],
+  ['每日挑战', 'Daily Challenge'],
+  ['每日练习', 'Daily Practice'],
+  ['错题重练', 'Mistake Review'],
+  ['专项挑战', 'Topic Drill']
+];
+
+export function localizeSeededText(text?: string): string {
+  if (!text) return text || '';
+  const pair = SEEDED_TEXT_PAIRS.find(([zh, en]) => zh === text || en === text);
+  return pair ? tr(pair[0], pair[1]) : text;
+}
+
+function localizeStudentProfile(p: StudentProfile): StudentProfile {
+  const prefs = p.preferences
+    ? { ...DEFAULT_STUDENT_PREFERENCES, ...p.preferences }
+    : { ...DEFAULT_STUDENT_PREFERENCES };
+  return {
+    ...p,
+    rewardGoalTitle: localizeSeededText(p.rewardGoalTitle),
+    preferences: {
+      ...prefs,
+      motto: localizeSeededText(prefs.motto)
+    }
+  };
+}
+
+function localizeQuestionObj(q: MathQuestion): MathQuestion {
+  return {
+    ...q,
+    methodTip: localizeMethodTip(q.methodTip),
+    difficultyGrade: localizeDifficultyGrade(q.difficultyGrade),
+    explanation: localizeExplanation(q.explanation, q)
+  };
 }
 
 export const DEFAULT_STUDENT_PREFERENCES: StudentPreferences = {
@@ -178,16 +222,11 @@ export function getStudentProfiles(): StudentProfile[] {
     if (raw) {
       const list = JSON.parse(raw);
       if (Array.isArray(list) && list.length > 0) {
-        return list.map(p => ({
-          ...p,
-          preferences: p.preferences
-            ? { ...DEFAULT_STUDENT_PREFERENCES, ...p.preferences }
-            : { ...DEFAULT_STUDENT_PREFERENCES }
-        }));
+        return list.map((p: StudentProfile) => localizeStudentProfile(p));
       }
     }
   } catch {}
-  return DEFAULT_STUDENTS;
+  return DEFAULT_STUDENTS.map(localizeStudentProfile);
 }
 
 export function saveStudentProfiles(profiles: StudentProfile[]): void {
@@ -381,7 +420,8 @@ export function getMistakes(studentId?: string): MistakeItem[] {
     const key = getMistakesKey(studentId);
     const raw = localStorage.getItem(key);
     if (raw) {
-      return JSON.parse(raw);
+      const list: MistakeItem[] = JSON.parse(raw);
+      return list.map(m => ({ ...m, question: localizeQuestionObj(m.question) }));
     }
   } catch {}
   return [];
@@ -472,7 +512,14 @@ export function getPracticeSessions(studentId?: string): PracticeSessionResult[]
     const key = getSessionsKey(studentId);
     const raw = localStorage.getItem(key);
     if (raw) {
-      return JSON.parse(raw);
+      const list: PracticeSessionResult[] = JSON.parse(raw);
+      return list.map(s => ({
+        ...s,
+        challengeMode: localizeSeededText(s.challengeMode),
+        attempts: Array.isArray(s.attempts)
+          ? s.attempts.map(a => ({ ...a, question: localizeQuestionObj(a.question) }))
+          : []
+      }));
     }
   } catch {}
   return [];
@@ -561,11 +608,17 @@ export function getWeakPointAnalysis(mistakes: MistakeItem[], sessions: Practice
     const subAvg = Number((subTotalTime / subAttempts).toFixed(1));
     if (subAcc < 85 || byOp['-'].total >= 3) {
       analyses.push({
-        category: '减法与退位运算',
-        description: `退位减法（如破十法）平均正确率 ${subAcc}%，错题累计 ${byOp['-'].total} 道。`,
+        category: tr('减法与退位运算', 'Subtraction & Borrowing'),
+        description: tr(
+          `退位减法（如破十法）平均正确率 ${subAcc}%，错题累计 ${byOp['-'].total} 道。`,
+          `Subtraction accuracy is ${subAcc}% with ${byOp['-'].total} mistake(s) recorded.`
+        ),
         accuracy: subAcc,
         avgTime: subAvg,
-        recommendation: '建议利用错题集专项练习“破十法”口诀与拆十法训练，强化 10 的减法口诀。'
+        recommendation: tr(
+          '建议利用错题集专项练习“破十法”口诀与拆十法训练，强化 10 的减法口诀。',
+          'Practice Break-10 subtraction in the Mistake Book to strengthen complements of 10.'
+        )
       });
     }
   }
@@ -575,11 +628,17 @@ export function getWeakPointAnalysis(mistakes: MistakeItem[], sessions: Practice
     const mulAvg = Number((mulTotalTime / mulAttempts).toFixed(1));
     if (mulAcc < 90 || mulAvg > 3.8 || byOp['×'].total >= 3) {
       analyses.push({
-        category: '乘法口诀熟练度',
-        description: `乘法运算平均耗时 ${mulAvg} 秒，个别7、8、9大数乘法口诀反应时间偏长。`,
+        category: tr('乘法口诀熟练度', 'Times Table Fluency'),
+        description: tr(
+          `乘法运算平均耗时 ${mulAvg} 秒，个别7、8、9大数乘法口诀反应时间偏长。`,
+          `Average multiplication time is ${mulAvg}s; larger facts (7, 8, 9) take longer.`
+        ),
         accuracy: mulAcc,
         avgTime: mulAvg,
-        recommendation: '每天晨读九九乘法表，重点强化“七八五十六”、“六八四十八”等大数乘积。'
+        recommendation: tr(
+          '每天晨读九九乘法表，重点强化“七八五十六”、“六八四十八”等大数乘积。',
+          'Review the 1–9 times tables daily, focusing on 6×8, 7×8, and 8×9 facts.'
+        )
       });
     }
   }
@@ -589,11 +648,17 @@ export function getWeakPointAnalysis(mistakes: MistakeItem[], sessions: Practice
     const divAvg = Number((divTotalTime / divAttempts).toFixed(1));
     if (divAcc < 85 || byOp['÷'].total >= 2) {
       analyses.push({
-        category: '表内除法逆向思维',
-        description: `除法平均正确率 ${divAcc}%，遇到逆向思考乘法口诀时偶有超时。`,
+        category: tr('表内除法逆向思维', 'Division via Multiplication'),
+        description: tr(
+          `除法平均正确率 ${divAcc}%，遇到逆向思考乘法口诀时偶有超时。`,
+          `Division accuracy is ${divAcc}%, with occasional timeouts when recalling inverse facts.`
+        ),
         accuracy: divAcc,
         avgTime: divAvg,
-        recommendation: '引导孩子理解“想乘算除”的逆运算关系，多做“几乘几等于被除数”的填空题。'
+        recommendation: tr(
+          '引导孩子理解“想乘算除”的逆运算关系，多做“几乘几等于被除数”的填空题。',
+          'Encourage "think multiply to divide" and practice missing-factor questions (? × b = a).'
+        )
       });
     }
   }
@@ -603,11 +668,17 @@ export function getWeakPointAnalysis(mistakes: MistakeItem[], sessions: Practice
     const addAvg = Number((addTotalTime / addAttempts).toFixed(1));
     if (addAcc < 88 || byOp['+'].total >= 3) {
       analyses.push({
-        category: '进位加法凑十法',
-        description: `进位加法中个位数跨十运算偶有粗心，累计出现 ${byOp['+'].total} 道加法错题。`,
+        category: tr('进位加法凑十法', 'Addition & Make-10'),
+        description: tr(
+          `进位加法中个位数跨十运算偶有粗心，累计出现 ${byOp['+'].total} 道加法错题。`,
+          `${byOp['+'].total} addition mistake(s) recorded, mostly when carrying across 10.`
+        ),
         accuracy: addAcc,
         avgTime: addAvg,
-        recommendation: '加强“凑十法”拆数练习，如“看见9想到1，看见8想到2，看见7想到3”。'
+        recommendation: tr(
+          '加强“凑十法”拆数练习，如“看见9想到1，看见8想到2，看见7想到3”。',
+          'Practice Make-10 pairs: see 9 think 1, see 8 think 2, see 7 think 3.'
+        )
       });
     }
   }
@@ -615,11 +686,17 @@ export function getWeakPointAnalysis(mistakes: MistakeItem[], sessions: Practice
   // Fallback diagnostic if student has practiced well or new
   if (analyses.length === 0) {
     analyses.push({
-      category: '口算基础扎实',
-      description: '近期各项运算表现稳定，加减乘除四项指标均达到优秀标准！',
+      category: tr('口算基础扎实', 'Solid Math Foundation'),
+      description: tr(
+        '近期各项运算表现稳定，加减乘除四项指标均达到优秀标准！',
+        'Great performance across +, −, ×, and ÷ — all metrics are in top shape!'
+      ),
       accuracy: 96,
       avgTime: 2.4,
-      recommendation: '继续保持5秒倒计时速算挑战习惯，可逐步挑战更高年级或加深混合巧算。'
+      recommendation: tr(
+        '继续保持5秒倒计时速算挑战习惯，可逐步挑战更高年级或加深混合巧算。',
+        'Keep up the daily timed challenge habit and try higher grades or mixed drills!'
+      )
     });
   }
 
@@ -711,34 +788,45 @@ export function seedSampleDataIfEmpty() {
 
 // Generate formatted WeChat report text for parents to share/copy to mobile chats
 export function generateWeChatReport(session: PracticeSessionResult, studentName?: string): string {
-  const name = studentName || session.studentName || '同学';
-  const dateText = new Date(session.timestamp).toLocaleString('zh-CN', {
+  const name = studentName || session.studentName || tr('同学', 'Student');
+  const dateText = new Date(session.timestamp).toLocaleString(getLang() === 'en' ? 'en-US' : 'zh-CN', {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit'
   });
+  const modeLabel = localizeSeededText(session.challengeMode || tr('每日挑战', 'Daily Challenge'));
 
   const lines = [
-    `📊【小象速算 · 挑战学情战报】`,
-    `👤 学员：${name}`,
-    `⏰ 时间：${dateText}`,
-    `🎯 模式：${session.challengeMode || '每日挑战'}（共 ${session.totalQuestions} 题）`,
-    `🏆 成绩：正确率 ${session.accuracyRate}% · 平均耗时 ${session.averageTimeSec}s/题`,
-    `⭐ 奖励：+${session.starsEarned} 颗小星星 (答对 ${session.correctCount} 题 / 错题 ${session.wrongCount} 题 / 超时 ${session.timeoutCount} 题)`,
+    tr(`📊【小象速算 · 挑战学情战报】`, `📊 [Elephant Math · Practice Report]`),
+    tr(`👤 学员：${name}`, `👤 Student: ${name}`),
+    tr(`⏰ 时间：${dateText}`, `⏰ Time: ${dateText}`),
+    tr(`🎯 模式：${modeLabel}（共 ${session.totalQuestions} 题）`, `🎯 Mode: ${modeLabel} (${session.totalQuestions} Qs)`),
+    tr(
+      `🏆 成绩：正确率 ${session.accuracyRate}% · 平均耗时 ${session.averageTimeSec}s/题`,
+      `🏆 Score: ${session.accuracyRate}% accuracy · Avg ${session.averageTimeSec}s/Q`
+    ),
+    tr(
+      `⭐ 奖励：+${session.starsEarned} 颗小星星 (答对 ${session.correctCount} 题 / 错题 ${session.wrongCount} 题 / 超时 ${session.timeoutCount} 题)`,
+      `⭐ Reward: +${session.starsEarned} stars (${session.correctCount} right / ${session.wrongCount} wrong / ${session.timeoutCount} timeout)`
+    ),
     ``,
-    `📝 每题准确率与用时明细：`
+    tr(`📝 每题准确率与用时明细：`, `📝 Question Breakdown:`)
   ];
 
   session.attempts.forEach((att, idx) => {
-    const status = att.isCorrect ? '✅ 答对' : att.isTimeout ? '⏰ 5秒超时' : `❌ 错填为 ${att.userAnswer}`;
+    const status = att.isCorrect
+      ? tr('✅ 答对', '✅ Correct')
+      : att.isTimeout
+      ? tr('⏰ 5秒超时', '⏰ Timeout')
+      : tr(`❌ 错填为 ${att.userAnswer}`, `❌ Answered ${att.userAnswer}`);
     lines.push(
-      `${idx + 1}. ${att.question.num1} ${att.question.operatorSymbol} ${att.question.num2} = ${att.question.correctAnswer} ➜ ${status} | 耗时 ${att.timeSpentSec}s`
+      `${idx + 1}. ${att.question.num1} ${att.question.operatorSymbol} ${att.question.num2} = ${att.question.correctAnswer} ➜ ${status} | ${tr(`耗时 ${att.timeSpentSec}s`, `${att.timeSpentSec}s`)}`
     );
   });
 
   lines.push('');
-  lines.push(`📱 完整数据已同步至家长手机端，点击随练系统随时复习错题与用时！`);
+  lines.push(tr(`📱 完整数据已同步至家长手机端，点击随练系统随时复习错题与用时！`, `📱 Full report synced to mobile — review mistakes anytime!`));
   return lines.join('\n');
 }
 

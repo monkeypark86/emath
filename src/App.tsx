@@ -34,9 +34,11 @@ import {
 } from './utils/storage';
 import { generateQuestionBatchByRule } from './utils/mathGenerator';
 import { sound } from './utils/soundEffects';
+import { useLang } from './i18n';
 import { Smartphone, CheckCircle, Bell, Users, Settings } from 'lucide-react';
 
 export default function App() {
+  const { t, lang } = useLang();
   const [currentTab, setCurrentTab] = useState<'practice' | 'banks' | 'mistakes' | 'parent' | 'mobile'>('practice');
   const [mistakeCount, setMistakeCount] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -47,6 +49,10 @@ export default function App() {
     seedSampleDataIfEmpty();
     return getActiveStudent();
   });
+
+  useEffect(() => {
+    setActiveStudent(getActiveStudent());
+  }, [lang]);
   // 首页首次进入让用户选择学生登录，确认后记录在 localStorage，下次刷新自动保持该学生登录！
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(() => {
     return !localStorage.getItem('math_chosen_student_confirmed_v1');
@@ -88,7 +94,7 @@ export default function App() {
     setActiveStudent({ ...fresh });
     setProfileVersion(prev => prev + 1);
     refreshMistakeCount();
-    showToast(`🎉 已成功登录：${fresh.avatar} ${fresh.name} 同学的口算专属档案！`);
+    showToast(t(`🎉 已成功登录：${fresh.avatar} ${fresh.name} 同学的口算专属档案！`, `🎉 Welcome, ${fresh.avatar} ${fresh.name}! Profile loaded.`));
   };
 
   const handleOpenStudentSettings = (student?: StudentProfile) => {
@@ -104,7 +110,7 @@ export default function App() {
       setActiveStudent({ ...fresh });
     }
     setProfileVersion(prev => prev + 1);
-    showToast(`✅ 已更新 ${updated.name} 的专属个人设置！`);
+    showToast(t(`✅ 已更新 ${updated.name} 的专属个人设置！`, `✅ Settings saved for ${updated.name}!`));
   };
 
   useEffect(() => {
@@ -119,7 +125,7 @@ export default function App() {
       if (ok) {
         refreshMistakeCount();
         setCurrentTab('mobile');
-        showToast('📱 已成功从扫码同步错题数据至移动端！');
+        showToast(t('📱 已成功从扫码同步错题数据至移动端！', '📱 Mistakes synced to mobile via QR code!'));
       }
     } else if (window.location.hash === '#mobile') {
       setCurrentTab('mobile');
@@ -150,7 +156,7 @@ export default function App() {
     // If mistakes occurred, automatically push to mobile
     const totalMistakes = result.wrongCount + result.timeoutCount;
     if (totalMistakes > 0) {
-      showToast(`📱 已自动将 ${totalMistakes} 道新错题推送到移动端！随时可拿出手机回顾练习。`);
+      showToast(t(`📱 已自动将 ${totalMistakes} 道新错题推送到移动端！随时可拿出手机回顾练习。`, `📱 ${totalMistakes} new mistake${totalMistakes === 1 ? '' : 's'} sent to mobile for review anytime.`));
     }
   };
 
@@ -211,7 +217,7 @@ export default function App() {
             onClick={() => setCurrentTab('mobile')}
             className="text-[11px] font-bold text-amber-400 underline shrink-0"
           >
-            立即查看
+            {t('立即查看', 'View')}
           </button>
         </div>
       )}
@@ -248,7 +254,7 @@ export default function App() {
             key={activeStudent.id}
             onPracticeMistakes={handlePracticeMistakes}
             onOpenMobileSync={() => setIsSyncModalOpen(true)}
-            onPrintWorksheet={qList => handlePrintQuestions(qList, `${activeStudent.name}的智能错题重练卷`)}
+            onPrintWorksheet={qList => handlePrintQuestions(qList, t(`${activeStudent.name}的智能错题重练卷`, `${activeStudent.name}'s Mistake Review Sheet`))}
             onBackToPractice={() => {
               setPracticeQuestions(undefined);
               setCurrentTab('practice');
@@ -269,7 +275,7 @@ export default function App() {
             }}
             onPrintReport={() => {
               const mistakes = getMistakes().map(m => m.question);
-              handlePrintQuestions(mistakes.slice(0, 15), `小象速算·${activeStudent.name}数学学情周报与薄弱专项卷`);
+              handlePrintQuestions(mistakes.slice(0, 15), t(`小象速算·${activeStudent.name}数学学情周报与薄弱专项卷`, `Elephant Math · ${activeStudent.name}'s Weekly Report & Focus Practice`));
             }}
             onOpenProfileModal={() => setIsProfileModalOpen(true)}
             onStudentUpdated={() => setActiveStudent(getActiveStudent())}
@@ -292,17 +298,17 @@ export default function App() {
       {!isPracticingActive && (
         <footer className="no-print bg-white border-t border-slate-200 py-6 mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
-            <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-slate-800">小象速算</span>
+            <div className="flex flex-wrap items-center justify-center gap-2 text-center">
+              <span className="font-display font-bold text-slate-800">{t('小象速算', 'Elephant Math')}</span>
               <span>·</span>
-              <span>小学生口算思维训练 & 智能错题同步系统</span>
+              <span>{t('小学生口算思维训练 & 智能错题同步系统', 'Mental math training & smart mistake sync')}</span>
             </div>
-            <div className="flex items-center gap-4 text-slate-400">
-              <span>自主口算训练</span>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-slate-400">
+              <span>{t('自主口算训练', 'Self-paced practice')}</span>
               <span>·</span>
-              <span>加减乘除精准题库</span>
+              <span>{t('加减乘除精准题库', '+ − × ÷ question banks')}</span>
               <span>·</span>
-              <span>多端实时同步</span>
+              <span>{t('多端实时同步', 'Multi-device sync')}</span>
             </div>
           </div>
         </footer>
@@ -332,7 +338,7 @@ export default function App() {
           }}
           onPrintWorksheet={qList => {
             setSessionReport(null);
-            handlePrintQuestions(qList, '本轮口算速练错题试卷');
+            handlePrintQuestions(qList, t('本轮口算速练错题试卷', 'This Round: Mistake Worksheet'));
           }}
         />
       )}

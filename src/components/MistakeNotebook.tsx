@@ -7,6 +7,7 @@ import {
   removeMistake
 } from '../utils/storage';
 import { sound } from '../utils/soundEffects';
+import { useLang } from '../i18n';
 import {
   BookOpen,
   RotateCcw,
@@ -38,6 +39,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
   onPrintWorksheet,
   onBackToPractice
 }) => {
+  const { t } = useLang();
   const [mistakes, setMistakes] = useState<MistakeItem[]>([]);
   const [filterStatus, setFilterStatus] = useState<'all' | 'unmastered' | 'mastered' | 'frequent'>('unmastered');
   const [filterOp, setFilterOp] = useState<'all' | OperationType>('all');
@@ -87,7 +89,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
   const handleStartMistakesChallenge = () => {
     const unmastered = filtered.filter(m => !m.mastered).map(m => m.question);
     if (unmastered.length === 0) {
-      alert('当前筛选分类下没有未掌握的错题，太棒了！');
+      alert(t('当前筛选分类下没有未掌握的错题，太棒了！', 'No unmastered mistakes in this filter. Great job!'));
       return;
     }
     onPracticeMistakes(unmastered);
@@ -123,34 +125,34 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
           onClick={onBackToPractice}
           className="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition-all shadow-2xs"
         >
-          <span>← 返回口算训练首页</span>
+          <span>{t('← 返回口算训练首页', '← Back to Practice')}</span>
         </button>
       )}
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-slate-900">
-              智能错题集与突破本
+              {t('智能错题集与突破本', 'Smart Mistake Notebook')}
             </h1>
             <span className="text-xs font-mono font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">
-              共 {mistakes.length} 题
+              {t(`共 ${mistakes.length} 题`, `${mistakes.length} total`)}
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            5秒挑战中做错或超时的题目均已自动汇入，提供口诀解析、单题重练及移动端扫码随身练。
+            {t('5秒挑战中做错或超时的题目均已自动汇入，提供口诀解析、单题重练及移动端扫码随身练。', 'Wrong or timed-out questions from the 5-second challenge are collected here automatically, with tips, single-question retries and mobile practice via QR code.')}
           </p>
         </div>
 
         {/* Quick Bulk Actions */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
             onClick={onOpenMobileSync}
             className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-1.5 shadow-xs"
           >
             <Share2 className="w-3.5 h-3.5 text-slate-500" />
-            <span>同步至手机</span>
+            <span>{t('同步至手机', 'Sync to Phone')}</span>
           </button>
 
           <button
@@ -160,7 +162,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
             className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 rounded-xl transition-colors flex items-center gap-1.5 shadow-xs"
           >
             <Printer className="w-3.5 h-3.5 text-slate-500" />
-            <span>打印错题练习纸</span>
+            <span>{t('打印错题练习纸', 'Print Worksheet')}</span>
           </button>
 
           <button
@@ -170,7 +172,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
             className="px-4 py-2 text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 disabled:opacity-50 rounded-xl transition-colors shadow-xs flex items-center gap-1.5"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>错题专项闯关</span>
+            <span>{t('错题专项闯关', 'Mistake Challenge')}</span>
           </button>
         </div>
       </div>
@@ -180,10 +182,10 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
         {/* Status Filter */}
         <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-full md:w-auto">
           {[
-            { id: 'unmastered', label: '待攻克' },
-            { id: 'frequent', label: '高频易错' },
-            { id: 'mastered', label: '已掌握' },
-            { id: 'all', label: '全部' }
+            { id: 'unmastered', label: t('待攻克', 'To Fix') },
+            { id: 'frequent', label: t('高频易错', 'Frequent') },
+            { id: 'mastered', label: t('已掌握', 'Mastered') },
+            { id: 'all', label: t('全部', 'All') }
           ].map(tab => (
             <button
               key={tab.id}
@@ -203,7 +205,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
         {/* Operation Filter */}
         <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
           {[
-            { id: 'all', sym: '全部' },
+            { id: 'all', sym: t('全部', 'All') },
             { id: 'add', sym: '+' },
             { id: 'subtract', sym: '-' },
             { id: 'multiply', sym: '×' },
@@ -229,7 +231,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
-            placeholder="搜索数字或算式..."
+            placeholder={t('搜索数字或算式...', 'Search numbers...')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500"
@@ -243,9 +245,9 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
             <CheckCircle2 className="w-6 h-6" />
           </div>
-          <h3 className="font-bold text-base text-slate-900">太棒了！暂无对应错题</h3>
+          <h3 className="font-bold text-base text-slate-900">{t('太棒了！暂无对应错题', 'Great! No mistakes here')}</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-            当前分类下没有需要练习的题目。继续参加 5 秒口算挑战，系统会自动捕获薄弱考点。
+            {t('当前分类下没有需要练习的题目。继续参加 5 秒口算挑战，系统会自动捕获薄弱考点。', 'Nothing to practice in this category. Keep taking the 5-second challenge and weak spots will be captured automatically.')}
           </p>
         </div>
       ) : (
@@ -274,7 +276,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-mono font-bold text-xl sm:text-2xl text-slate-900">
                           {item.question.num1} {item.question.operatorSymbol} {item.question.num2} = ?
                         </span>
@@ -282,14 +284,14 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                         {item.wrongCount >= 2 && (
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
                             <Flame className="w-3 h-3 fill-rose-500" />
-                            {item.wrongCount}次做错
+                            {t(`${item.wrongCount}次做错`, `Wrong ${item.wrongCount}×`)}
                           </span>
                         )}
 
                         {item.mastered && (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
                             <Check className="w-3 h-3 stroke-[3]" />
-                            已攻克
+                            {t('已攻克', 'Mastered')}
                           </span>
                         )}
                       </div>
@@ -300,14 +302,14 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                         <span>{item.question.methodTip}</span>
                         <span>·</span>
                         <span className="text-slate-400">
-                          上次答题: {item.isTimeout ? '5秒超时未答' : `填了 ${item.wrongAnswer}`} ({item.timeSpentSec}s)
+                          {t('上次答题', 'Last answer')}: {item.isTimeout ? t('5秒超时未答', 'Timed out (5s)') : t(`填了 ${item.wrongAnswer}`, `${item.wrongAnswer}`)} ({item.timeSpentSec}s)
                         </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Right Action Buttons */}
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex flex-wrap items-center justify-end gap-2 self-end sm:self-center">
                     <button
                       type="button"
                       onClick={() => {
@@ -317,7 +319,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                       }}
                       className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 transition-colors"
                     >
-                      {isQuizzing ? '收起重做' : '单题重练'}
+                      {isQuizzing ? t('收起重做', 'Close Retry') : t('单题重练', 'Retry')}
                     </button>
 
                     <button
@@ -329,14 +331,14 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                           : 'border-emerald-200 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100'
                       }`}
                     >
-                      {item.mastered ? '标记未掌握' : '标记已掌握'}
+                      {item.mastered ? t('标记未掌握', 'Mark Unmastered') : t('标记已掌握', 'Mark Mastered')}
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setExpandedId(isExpanded ? null : item.id)}
                       className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
-                      title="查看解题思路"
+                      title={t('查看解题思路', 'View solution')}
                     >
                       {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </button>
@@ -345,7 +347,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                       type="button"
                       onClick={() => handleDelete(item.id)}
                       className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors"
-                      title="移出租本"
+                      title={t('移出租本', 'Remove')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -355,15 +357,15 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                 {/* In-Place Single Quiz Input */}
                 {isQuizzing && (
                   <div className="px-4 py-3 bg-amber-50/70 border-t border-amber-100 rounded-b-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 text-xs text-amber-900 font-medium">
-                      <span>即刻重练：</span>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-amber-900 font-medium">
+                      <span>{t('即刻重练：', 'Retry now:')}</span>
                       <span className="font-mono font-bold text-sm">
                         {item.question.num1} {item.question.operatorSymbol} {item.question.num2} =
                       </span>
                       <input
                         type="number"
                         autoFocus
-                        placeholder="输入答案"
+                        placeholder={t('输入答案', 'Answer')}
                         value={quizInput}
                         onChange={e => setQuizInput(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleSingleQuizSubmit(item)}
@@ -374,18 +376,18 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                         onClick={() => handleSingleQuizSubmit(item)}
                         className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg text-xs transition-colors"
                       >
-                        提交验证
+                        {t('提交验证', 'Submit')}
                       </button>
                     </div>
 
                     {quizFeedback === 'correct' && (
                       <div className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-                        <CheckCircle2 className="w-4 h-4" /> 答对啦！已自动标记为“已掌握”！
+                        <CheckCircle2 className="w-4 h-4 shrink-0" /> {t('答对啦！已自动标记为“已掌握”！', 'Correct! Marked as mastered!')}
                       </div>
                     )}
                     {quizFeedback === 'wrong' && (
                       <div className="text-xs font-bold text-rose-600 flex items-center gap-1">
-                        <XCircle className="w-4 h-4" /> 不对哦，正确答案是 {item.question.correctAnswer}
+                        <XCircle className="w-4 h-4 shrink-0" /> {t('不对哦，正确答案是', 'Not quite, the answer is')} {item.question.correctAnswer}
                       </div>
                     )}
                   </div>
@@ -396,13 +398,13 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                   <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 rounded-b-2xl text-xs space-y-2">
                     <div className="font-semibold text-slate-800 flex items-center gap-1.5">
                       <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
-                      <span>规范解法与口诀引导：</span>
+                      <span>{t('规范解法与口诀引导：', 'Solution & tips:')}</span>
                     </div>
                     <div className="text-slate-600 leading-relaxed pl-5">
                       {item.question.explanation}
                     </div>
                     <div className="pl-5 text-[11px] text-slate-400">
-                      正确答案：<span className="font-mono font-bold text-emerald-600">{item.question.correctAnswer}</span>
+                      {t('正确答案：', 'Answer: ')}<span className="font-mono font-bold text-emerald-600">{item.question.correctAnswer}</span>
                     </div>
                   </div>
                 )}

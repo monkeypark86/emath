@@ -18,6 +18,7 @@ import {
 } from '../utils/storage';
 import { generateQuestionBatch } from '../utils/mathGenerator';
 import { sound } from '../utils/soundEffects';
+import { useLang } from '../i18n';
 import {
   Play,
   RotateCcw,
@@ -59,6 +60,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
   onOpenSettings,
   onSelectTab
 }) => {
+  const { t } = useLang();
   const studentPrefs = student?.preferences;
 
   const getPreferredLayout = (q?: MathQuestion): boolean => {
@@ -94,7 +96,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
   const [isVerticalFormula, setIsVerticalFormula] = useState<boolean>(() => getPreferredLayout());
   const [countdownAnim, setCountdownAnim] = useState<string | null>(null);
   const [hasTimedOutCurrentQ, setHasTimedOutCurrentQ] = useState<boolean>(false);
-  const [currentModeTitle, setCurrentModeTitle] = useState<string>('每日练习');
+  const [currentModeTitle, setCurrentModeTitle] = useState<string>(() => t('每日练习', 'Daily Practice'));
 
   useEffect(() => {
     if (studentPrefs?.equationLayout === 'auto' && questions[currentIndex]) {
@@ -164,7 +166,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
   // If initialQuestions provided (e.g. retaking mistakes), auto start with Ready Go animation
   useEffect(() => {
     if (initialQuestions && initialQuestions.length > 0) {
-      setCurrentModeTitle('错题重测');
+      setCurrentModeTitle(t('错题重测', 'Mistake Retry'));
       setQuestions(initialQuestions);
       setQuestionCount(initialQuestions.length);
       setCurrentIndex(0);
@@ -293,7 +295,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
   // 1. 🌟 每日练习
   const startDailyPractice = () => {
-    setCurrentModeTitle('每日练习');
+    setCurrentModeTitle(t('每日练习', 'Daily Practice'));
     const prefs = student?.preferences || DEFAULT_STUDENT_PREFERENCES;
     const g = student?.grade || defaultGrade;
     const ops = prefs.selectedOps && prefs.selectedOps.length > 0 ? prefs.selectedOps : (['add', 'subtract', 'multiply', 'divide'] as OperationType[]);
@@ -304,7 +306,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
   // 2. ⚡ 每日挑战 (极速闪电3秒)
   const startDailyChallenge = () => {
-    setCurrentModeTitle('每日挑战 (3s极速)');
+    setCurrentModeTitle(t('每日挑战 (3s极速)', 'Daily Challenge (3s)'));
     const prefs = student?.preferences || DEFAULT_STUDENT_PREFERENCES;
     const g = student?.grade || defaultGrade;
     const ops = prefs.selectedOps && prefs.selectedOps.length > 0 ? prefs.selectedOps : (['add', 'subtract', 'multiply', 'divide'] as OperationType[]);
@@ -314,11 +316,11 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
   // 3. 📝 错题练习
   const startMistakePractice = () => {
-    setCurrentModeTitle('错题专练');
+    setCurrentModeTitle(t('错题专练', 'Mistake Drill'));
     const unmastered = getMistakes(student?.id).filter(m => !m.mastered);
     if (unmastered.length === 0) {
       sound.playCorrect();
-      alert('太棒了！当前没有未掌握的错题，去进行每日练习吧！');
+      alert(t('太棒了！当前没有未掌握的错题，去进行每日练习吧！', 'Awesome! No unmastered mistakes right now — try Daily Practice!'));
       return;
     }
     const qList = unmastered.map(m => m.question);
@@ -330,7 +332,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
   // 4. 🎯 今日推荐个性化练习
   const startRecommendedPractice = () => {
-    setCurrentModeTitle('智能推荐练习');
+    setCurrentModeTitle(t('智能推荐练习', 'Smart Practice'));
     const unmastered = getMistakes(student?.id).filter(m => !m.mastered);
     const mistakeQuestions = unmastered.slice(0, 5).map(m => m.question);
     const needed = Math.max(0, 10 - mistakeQuestions.length);
@@ -537,7 +539,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
             {countdownAnim}
           </div>
           <p className="text-slate-200 text-base sm:text-lg mt-6 font-bold tracking-widest">
-            {countdownAnim === 'READY...' ? '准备迎接口算挑战！' : countdownAnim === 'GO! 🚀' ? '全速冲刺！' : '保持专注，算得又快又准'}
+            {countdownAnim === 'READY...' ? t('准备迎接口算挑战！', 'Get ready for the math challenge!') : countdownAnim === 'GO! 🚀' ? t('全速冲刺！', 'Full speed ahead!') : t('保持专注，算得又快又准', 'Stay focused — fast and accurate!')}
           </p>
         </div>
       )}
@@ -554,7 +556,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-display font-bold text-lg text-slate-900">{student?.name || '同学'}</span>
+                    <span className="font-display font-bold text-lg text-slate-900">{student?.name || t('同学', 'Student')}</span>
                     <span className="text-xs font-bold text-amber-800 bg-amber-200/90 px-2.5 py-0.5 rounded-full">
                       {formatGradeLabel(student?.grade || grade)}
                     </span>
@@ -564,7 +566,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                   </div>
                   <p className="text-xs text-slate-600 mt-1 flex items-center gap-1 font-medium italic">
                     <span>💬</span>
-                    <span>“{student?.preferences?.motto || '每天坚持口算，我是速算小达人！'}”</span>
+                    <span>“{student?.preferences?.motto || t('每天坚持口算，我是速算小达人！', 'Practice every day — I am a math star!')}”</span>
                   </p>
                 </div>
               </div>
@@ -576,10 +578,10 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                     type="button"
                     onClick={onOpenSettings}
                     className="px-3.5 py-2 rounded-2xl bg-white hover:bg-amber-50 text-amber-950 border border-amber-300 text-xs font-bold shadow-2xs hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
-                    title="调整我的专属个人口算设置"
+                    title={t('调整我的专属个人口算设置', 'Customize my math settings')}
                   >
                     <Settings className="w-3.5 h-3.5 text-amber-600" />
-                    <span>修改口算设置</span>
+                    <span>{t('修改口算设置', 'Settings')}</span>
                   </button>
                 </div>
               )}
@@ -590,9 +592,9 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
               <div className="bg-white/80 rounded-xl px-3 py-2 border border-amber-100 flex items-center gap-2">
                 <span className="text-base">🔢</span>
                 <div>
-                  <div className="text-[10px] text-slate-400 font-medium">每组练习题量</div>
+                  <div className="text-[10px] text-slate-400 font-medium">{t('每组练习题量', 'Questions / Round')}</div>
                   <div className="font-bold text-slate-800 font-mono">
-                    {student?.preferences?.questionCount || questionCount || 30} 题 / 组
+                    {student?.preferences?.questionCount || questionCount || 30} {t('题 / 组', 'Qs / round')}
                   </div>
                 </div>
               </div>
@@ -600,13 +602,13 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
               <div className="bg-white/80 rounded-xl px-3 py-2 border border-amber-100 flex items-center gap-2">
                 <span className="text-base">📐</span>
                 <div>
-                  <div className="text-[10px] text-slate-400 font-medium">算式排版格式</div>
+                  <div className="text-[10px] text-slate-400 font-medium">{t('算式排版格式', 'Equation Layout')}</div>
                   <div className="font-bold text-slate-800">
                     {student?.preferences?.equationLayout === 'horizontal'
-                      ? '横式优先'
+                      ? t('横式优先', 'Horizontal')
                       : student?.preferences?.equationLayout === 'auto'
-                      ? '智能自适应'
-                      : '竖式(立式)优先'}
+                      ? t('智能自适应', 'Auto-fit')
+                      : t('竖式(立式)优先', 'Vertical')}
                   </div>
                 </div>
               </div>
@@ -614,13 +616,13 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
               <div className="bg-white/80 rounded-xl px-3 py-2 border border-amber-100 flex items-center gap-2">
                 <span className="text-base">⏱️</span>
                 <div>
-                  <div className="text-[10px] text-slate-400 font-medium">单题建议节奏</div>
+                  <div className="text-[10px] text-slate-400 font-medium">{t('单题建议节奏', 'Target Pace')}</div>
                   <div className="font-bold text-slate-800">
                     {student?.preferences?.perQuestionSeconds && student.preferences.perQuestionSeconds > 0
-                      ? `${student.preferences.perQuestionSeconds} 秒标准`
+                      ? t(`${student.preferences.perQuestionSeconds} 秒标准`, `${student.preferences.perQuestionSeconds}s / Q`)
                       : countdownDuration > 0
-                      ? `${countdownDuration} 秒标准`
-                      : '稳扎稳打 (不限时)'}
+                      ? t(`${countdownDuration} 秒标准`, `${countdownDuration}s / Q`)
+                      : t('稳扎稳打 (不限时)', 'Untimed')}
                   </div>
                 </div>
               </div>
@@ -628,8 +630,8 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
               <div className="bg-white/80 rounded-xl px-3 py-2 border border-amber-100 flex items-center gap-2">
                 <span className="text-base">🎯</span>
                 <div className="truncate">
-                  <div className="text-[10px] text-slate-400 font-medium">心愿大奖进度</div>
-                  <div className="font-bold text-amber-700 truncate" title={student?.rewardGoalTitle || '心愿大奖'}>
+                  <div className="text-[10px] text-slate-400 font-medium">{t('心愿大奖进度', 'Reward Goal')}</div>
+                  <div className="font-bold text-amber-700 truncate" title={student?.rewardGoalTitle || t('心愿大奖', 'Reward Goal')}>
                     ⭐ {student?.currentStars || 0}/{student?.rewardGoalStarsNeeded || 50}
                   </div>
                 </div>
@@ -638,13 +640,13 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
             {/* 包含的运算类型小标 */}
             <div className="mt-3 flex items-center gap-1.5 flex-wrap text-[11px] text-slate-500">
-              <span className="font-medium text-slate-400">当前激活运算:</span>
+              <span className="font-medium text-slate-400">{t('当前激活运算:', 'Active Operations:')}</span>
               {(student?.preferences?.selectedOps || selectedOps || ['add', 'subtract', 'multiply', 'divide']).map(op => (
                 <span
                   key={op}
                   className="bg-amber-100/80 text-amber-900 font-bold px-2 py-0.5 rounded-lg border border-amber-200/50"
                 >
-                  {op === 'add' ? '➕ 加法' : op === 'subtract' ? '➖ 减法' : op === 'multiply' ? '✖️ 乘法' : '➗ 除法'}
+                  {op === 'add' ? t('➕ 加法', '➕ Add') : op === 'subtract' ? t('➖ 减法', '➖ Sub') : op === 'multiply' ? t('✖️ 乘法', '✖️ Mul') : t('➗ 除法', '➗ Div')}
                 </span>
               ))}
             </div>
@@ -662,17 +664,20 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl mb-4 shadow-inner">
                   🌟
                 </div>
-                <h3 className="text-xl font-display font-bold">每日练习</h3>
+                <h3 className="text-xl font-display font-bold">{t('每日练习', 'Daily Practice')}</h3>
                 <p className="text-xs text-amber-100 mt-1.5 leading-relaxed">
-                  基于你当前的学段难度（{formatGradeLabel(student?.grade || grade)} · {formatGradeDetail(student?.grade || grade)}）与运算配置，轻松打卡练习。
+                  {t(
+                    `基于你当前的学段难度（${formatGradeLabel(student?.grade || grade)} · ${formatGradeDetail(student?.grade || grade)}）与运算配置，轻松打卡练习。`,
+                    `Tailored to your level (${formatGradeLabel(student?.grade || grade)} · ${formatGradeDetail(student?.grade || grade)}) and active operations.`
+                  )}
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-white/20 flex items-center justify-between text-xs font-bold">
                 <span className="bg-white/25 px-2.5 py-1 rounded-xl">
-                  {student?.preferences?.questionCount || questionCount || 30} 题 · 智能算式
+                  {student?.preferences?.questionCount || questionCount || 30} {t('题 · 智能算式', 'Qs · Smart Mix')}
                 </span>
                 <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  立即开始 <ChevronRight className="w-4 h-4" />
+                  {t('立即开始', 'Start')} <ChevronRight className="w-4 h-4" />
                 </span>
               </div>
             </div>
@@ -687,17 +692,20 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl mb-4 shadow-inner">
                   ⚡
                 </div>
-                <h3 className="text-xl font-display font-bold">每日挑战</h3>
+                <h3 className="text-xl font-display font-bold">{t('每日挑战', 'Speed Challenge')}</h3>
                 <p className="text-xs text-indigo-100 mt-1.5 leading-relaxed">
-                  3秒极速闪电冲刺，挑战思维极限，连击点燃激情，双倍积分与星星奖励！
+                  {t(
+                    '3秒极速闪电冲刺，挑战思维极限，连击点燃激情，双倍积分与星星奖励！',
+                    '3-second lightning sprint! Build streaks and earn double points & stars!'
+                  )}
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-white/20 flex items-center justify-between text-xs font-bold">
                 <span className="bg-white/25 px-2.5 py-1 rounded-xl">
-                  3秒疾速 · 挑战双倍星
+                  {t('3秒疾速 · 挑战双倍星', '3s Sprint · 2× Stars')}
                 </span>
                 <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  极速冲刺 <ChevronRight className="w-4 h-4" />
+                  {t('极速冲刺', 'Sprint')} <ChevronRight className="w-4 h-4" />
                 </span>
               </div>
             </div>
@@ -712,24 +720,27 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl mb-4 shadow-inner">
                   📝
                 </div>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-display font-bold">错题练习</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-xl font-display font-bold">{t('错题练习', 'Mistake Drill')}</h3>
                   {unmasteredMistakeCount > 0 && (
-                    <span className="bg-white text-rose-700 text-xs font-bold px-2.5 py-0.5 rounded-full shadow-xs">
-                      {unmasteredMistakeCount} 题待攻克
+                    <span className="bg-white text-rose-700 text-xs font-bold px-2.5 py-0.5 rounded-full shadow-xs whitespace-nowrap">
+                      {t(`${unmasteredMistakeCount} 题待攻克`, `${unmasteredMistakeCount} to master`)}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-rose-100 mt-1.5 leading-relaxed">
-                  精准提取智能错题集中的未掌握薄弱题目，温故知新，逐个彻底攻克。
+                  {t(
+                    '精准提取智能错题集中的未掌握薄弱题目，温故知新，逐个彻底攻克。',
+                    'Target unmastered questions from your Mistake Book and conquer them one by one.'
+                  )}
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-white/20 flex items-center justify-between text-xs font-bold">
                 <span className="bg-white/25 px-2.5 py-1 rounded-xl">
-                  专项错题特训
+                  {t('专项错题特训', 'Focused Review')}
                 </span>
                 <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  开始特训 <ChevronRight className="w-4 h-4" />
+                  {t('开始特训', 'Review')} <ChevronRight className="w-4 h-4" />
                 </span>
               </div>
             </div>
@@ -746,20 +757,26 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 🎯
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg sm:text-xl font-display font-bold">今日推荐个性化突破特训</h3>
-                  <span className="text-[10px] bg-white/25 px-2 py-0.5 rounded-full font-bold">AI 智能推荐</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-lg sm:text-xl font-display font-bold">{t('今日推荐个性化突破特训', 'Today’s Smart Personalized Drill')}</h3>
+                  <span className="text-[10px] bg-white/25 px-2 py-0.5 rounded-full font-bold">{t('AI 智能推荐', 'AI Pick')}</span>
                 </div>
                 <p className="text-xs text-teal-100 mt-1">
                   {unmasteredMistakeCount > 0 
-                    ? `已融合你的 ${unmasteredMistakeCount} 道错题集薄弱点与近期训练数据，一键开启靶向攻坚！`
-                    : '根据你的学段难度智能生成的 10 道综合口算突破题，助你稳步进阶！'}
+                    ? t(
+                        `已融合你的 ${unmasteredMistakeCount} 道错题集薄弱点与近期训练数据，一键开启靶向攻坚！`,
+                        `Blends ${unmasteredMistakeCount} mistake(s) from your notebook with fresh practice questions!`
+                      )
+                    : t(
+                        '根据你的学段难度智能生成的 10 道综合口算突破题，助你稳步进阶！',
+                        '10 smart mixed questions tailored to your grade level to help you level up!'
+                      )}
                 </p>
               </div>
             </div>
             <div className="relative z-10 shrink-0">
               <span className="px-5 py-2.5 rounded-2xl bg-white text-teal-900 text-xs font-bold shadow-sm group-hover:bg-teal-50 transition-colors flex items-center gap-1.5">
-                <span>立即开始推荐特训</span>
+                <span>{t('立即开始推荐特训', 'Start Smart Drill')}</span>
                 <ChevronRight className="w-4 h-4" />
               </span>
             </div>
@@ -773,9 +790,9 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
             type="button"
             onClick={handleExitPractice}
             className="absolute top-4 right-4 text-xs font-medium text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors px-2.5 py-1 rounded-lg"
-            title="退出练习"
+            title={t('退出练习', 'Exit practice')}
           >
-            ✕ 退出
+            ✕ {t('退出', 'Exit')}
           </button>
 
           {/* Central Question Arena */}
@@ -866,7 +883,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 disabled={isAnswerRevealed}
                 className="h-16 sm:h-20 md:h-24 rounded-3xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-bold text-xl sm:text-2xl border-2 border-slate-200/80 transition-all active:scale-95 cursor-pointer"
               >
-                清空
+                {t('清空', 'Clear')}
               </button>
 
               <button
@@ -900,7 +917,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
               >
-                <span>确定提交 (Enter)</span>
+                <span>{t('确定提交 (Enter)', 'Submit (Enter)')}</span>
                 <ChevronRight className="w-9 h-9 sm:w-10 sm:h-10" />
               </button>
             </div>

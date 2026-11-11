@@ -33,6 +33,7 @@ import {
   CheckCircle2,
   HelpCircle
 } from 'lucide-react';
+import { useLang } from '../i18n';
 
 interface StudentSettingsModalProps {
   isOpen: boolean;
@@ -43,21 +44,24 @@ interface StudentSettingsModalProps {
 
 const AVATAR_OPTIONS = ['🐰', '🦁', '🐼', '🦊', '🐯', '🐻', '🐨', '🚀', '🦄', '🌟', '🐶', '🐱'];
 
-const MOTTO_PRESETS = [
-  '每天坚持口算，我是速算小达人！',
-  '乘除口诀记得牢，立式计算快又准！',
-  '凑十破十法，每天进步一点点！',
-  '做错不害怕，多练会变强！',
-  '细心第一，速度第二！',
-  '挑战自我，向着心愿大奖冲刺！'
+type TFn = (zh: string, en: string) => string;
+
+// 在渲染时解析文案，保证切换语言后即时更新
+const getMottoPresets = (t: TFn) => [
+  t('每天坚持口算，我是速算小达人！', 'Daily practice makes me a math star!'),
+  t('乘除口诀记得牢，立式计算快又准！', 'Know my tables, solve fast and right!'),
+  t('凑十破十法，每天进步一点点！', 'Make ten, break ten, better every day!'),
+  t('做错不害怕，多练会变强！', 'Mistakes are OK, practice makes strong!'),
+  t('细心第一，速度第二！', 'Accuracy first, speed second!'),
+  t('挑战自我，向着心愿大奖冲刺！', 'Challenge myself, go for the big reward!')
 ];
 
-const THEME_OPTIONS: { id: StudentPreferences['themeColor']; label: string; colorClass: string; bgClass: string; borderClass: string }[] = [
-  { id: 'amber', label: '活力橙', colorClass: 'text-amber-600', bgClass: 'bg-amber-500', borderClass: 'border-amber-500' },
-  { id: 'blue', label: '天空蓝', colorClass: 'text-blue-600', bgClass: 'bg-blue-500', borderClass: 'border-blue-500' },
-  { id: 'rose', label: '草莓粉', colorClass: 'text-rose-600', bgClass: 'bg-rose-500', borderClass: 'border-rose-500' },
-  { id: 'emerald', label: '翡翠绿', colorClass: 'text-emerald-600', bgClass: 'bg-emerald-500', borderClass: 'border-emerald-500' },
-  { id: 'purple', label: '星空紫', colorClass: 'text-purple-600', bgClass: 'bg-purple-500', borderClass: 'border-purple-500' }
+const getThemeOptions = (t: TFn): { id: StudentPreferences['themeColor']; label: string; colorClass: string; bgClass: string; borderClass: string }[] => [
+  { id: 'amber', label: t('活力橙', 'Orange'), colorClass: 'text-amber-600', bgClass: 'bg-amber-500', borderClass: 'border-amber-500' },
+  { id: 'blue', label: t('天空蓝', 'Blue'), colorClass: 'text-blue-600', bgClass: 'bg-blue-500', borderClass: 'border-blue-500' },
+  { id: 'rose', label: t('草莓粉', 'Pink'), colorClass: 'text-rose-600', bgClass: 'bg-rose-500', borderClass: 'border-rose-500' },
+  { id: 'emerald', label: t('翡翠绿', 'Green'), colorClass: 'text-emerald-600', bgClass: 'bg-emerald-500', borderClass: 'border-emerald-500' },
+  { id: 'purple', label: t('星空紫', 'Purple'), colorClass: 'text-purple-600', bgClass: 'bg-purple-500', borderClass: 'border-purple-500' }
 ];
 
 export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
@@ -66,6 +70,11 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
   student,
   onSave
 }) => {
+  const { t } = useLang();
+  const MOTTO_PRESETS = getMottoPresets(t);
+  const THEME_OPTIONS = getThemeOptions(t);
+  const defaultMotto = t('每天坚持口算，我是速算小达人！', 'Daily practice makes me a math star!');
+  const defaultRewardTitle = t('心愿大奖', 'Big Reward');
   // 3 大核心分类：口算题目定制 | 视听界面偏好 | 档案激励心愿
   const [activeTab, setActiveTab] = useState<'rules' | 'display' | 'profile'>('rules');
 
@@ -75,7 +84,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
   const [grade, setGrade] = useState<GradeLevel>(student.grade);
   const [dailyTargetCount, setDailyTargetCount] = useState<number>(student.dailyTargetCount || 20);
   const [targetAccuracyRate, setTargetAccuracyRate] = useState<number>(student.targetAccuracyRate || 90);
-  const [rewardGoalTitle, setRewardGoalTitle] = useState<string>(student.rewardGoalTitle || '心愿大奖');
+  const [rewardGoalTitle, setRewardGoalTitle] = useState<string>(student.rewardGoalTitle || defaultRewardTitle);
   const [rewardGoalStarsNeeded, setRewardGoalStarsNeeded] = useState<number>(student.rewardGoalStarsNeeded || 50);
 
   // Preferences
@@ -88,7 +97,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
   const [perQuestionSeconds, setPerQuestionSeconds] = useState<number>(studentPrefs.perQuestionSeconds ?? 5);
   const [selectedOps, setSelectedOps] = useState<OperationType[]>(studentPrefs.selectedOps || ['add', 'subtract', 'multiply', 'divide']);
   const [questionCount, setQuestionCount] = useState<number>(studentPrefs.questionCount || 20);
-  const [motto, setMotto] = useState<string>(studentPrefs.motto || '每天坚持口算，我是速算小达人！');
+  const [motto, setMotto] = useState<string>(studentPrefs.motto || defaultMotto);
   const [themeColor, setThemeColor] = useState<StudentPreferences['themeColor']>(studentPrefs.themeColor || 'amber');
 
   // Reset when modal opens with new student
@@ -99,7 +108,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
       setGrade(student.grade);
       setDailyTargetCount(student.dailyTargetCount || 20);
       setTargetAccuracyRate(student.targetAccuracyRate || 90);
-      setRewardGoalTitle(student.rewardGoalTitle || '心愿大奖');
+      setRewardGoalTitle(student.rewardGoalTitle || defaultRewardTitle);
       setRewardGoalStarsNeeded(student.rewardGoalStarsNeeded || 50);
 
       const prefs = student.preferences || DEFAULT_STUDENT_PREFERENCES;
@@ -111,7 +120,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
       setPerQuestionSeconds(prefs.perQuestionSeconds ?? 5);
       setSelectedOps(prefs.selectedOps || ['add', 'subtract', 'multiply', 'divide']);
       setQuestionCount(prefs.questionCount || 20);
-      setMotto(prefs.motto || '每天坚持口算，我是速算小达人！');
+      setMotto(prefs.motto || defaultMotto);
       setThemeColor(prefs.themeColor || 'amber');
     }
   }, [isOpen, student]);
@@ -149,7 +158,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
       perQuestionSeconds,
       selectedOps,
       questionCount,
-      motto: motto.trim() || '每天坚持口算，我是速算小达人！',
+      motto: motto.trim() || defaultMotto,
       themeColor
     };
 
@@ -160,7 +169,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
       grade,
       dailyTargetCount,
       targetAccuracyRate,
-      rewardGoalTitle: rewardGoalTitle.trim() || '心愿大奖',
+      rewardGoalTitle: rewardGoalTitle.trim() || defaultRewardTitle,
       rewardGoalStarsNeeded,
       preferences: updatedPreferences,
       lastActiveAt: Date.now()
@@ -193,7 +202,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg sm:text-xl font-bold font-display">{name} 的口算专属设置</h2>
+                <h2 className="text-lg sm:text-xl font-bold font-display">{t(`${name} 的口算专属设置`, `${name}'s Settings`)}</h2>
                 <span className="text-xs bg-white/25 px-2.5 py-0.5 rounded-full font-bold">
                   {formatGradeLabel(grade)}
                 </span>
@@ -203,7 +212,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               </div>
               <p className="text-xs text-amber-100 mt-0.5 flex items-center gap-1.5 line-clamp-1">
                 <Sparkles className="w-3.5 h-3.5 text-amber-200 shrink-0" />
-                <span>自定义学段难度、立式竖式格式、答题节奏与激励心愿</span>
+                <span className="truncate">{t('自定义学段难度、立式竖式格式、答题节奏与激励心愿', 'Customize grade level, equation layout, pace and rewards')}</span>
               </p>
             </div>
           </div>
@@ -211,7 +220,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
             type="button"
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors cursor-pointer"
-            title="关闭设置"
+            title={t('关闭设置', 'Close settings')}
           >
             <X className="w-5 h-5" />
           </button>
@@ -229,7 +238,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
             }`}
           >
             <BookOpen className="w-4 h-4 text-amber-500" />
-            <span>口算模式与规则</span>
+            <span className="whitespace-nowrap">{t('口算模式与规则', 'Practice Rules')}</span>
           </button>
 
           <button
@@ -242,7 +251,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
             }`}
           >
             <Palette className="w-4 h-4 text-amber-500" />
-            <span>视听与界面偏好</span>
+            <span className="whitespace-nowrap">{t('视听与界面偏好', 'Display')}</span>
           </button>
 
           <button
@@ -255,7 +264,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
             }`}
           >
             <Award className="w-4 h-4 text-amber-500" />
-            <span>档案与心愿激励</span>
+            <span className="whitespace-nowrap">{t('档案与心愿激励', 'Profile')}</span>
           </button>
         </div>
 
@@ -267,19 +276,19 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 1. 学段难度选择 */}
               <div>
                 <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
-                  <span>就读年级与学段难度</span>
+                  <span>{t('就读年级与学段难度', 'Grade & Difficulty')}</span>
                   <span className="text-xs text-amber-600 font-semibold">
-                    当前选择：{formatGradeLabel(grade)}
+                    {t('当前选择：', 'Selected: ')}{formatGradeLabel(grade)}
                   </span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {[
-                    { id: 'grade1' as const, label: '一年级', desc: '20以内进退位·凑十破十' },
-                    { id: 'grade2' as const, label: '二年级', desc: '100以内加减·表内九九乘除' },
-                    { id: 'grade3' as const, label: '三年级', desc: '多位数乘除·千以内速算' },
-                    { id: 'grade4' as const, label: '四年级', desc: '简便巧算·两三位数速算' },
-                    { id: 'grade5_6' as const, label: '五/六年级', desc: '四则混合极限速算' },
-                    { id: 'custom' as const, label: '自定义难度', desc: '自选出题范围与规则' }
+                    { id: 'grade1' as const, label: t('一年级', 'Grade 1'), desc: t('20以内进退位·凑十破十', 'Within 20 · make/break ten') },
+                    { id: 'grade2' as const, label: t('二年级', 'Grade 2'), desc: t('100以内加减·表内九九乘除', '± within 100 · times tables') },
+                    { id: 'grade3' as const, label: t('三年级', 'Grade 3'), desc: t('多位数乘除·千以内速算', 'Multi-digit ×÷ · within 1000') },
+                    { id: 'grade4' as const, label: t('四年级', 'Grade 4'), desc: t('简便巧算·两三位数速算', 'Shortcuts · 2–3 digit math') },
+                    { id: 'grade5_6' as const, label: t('五/六年级', 'Grade 5/6'), desc: t('四则混合极限速算', 'Mixed operations') },
+                    { id: 'custom' as const, label: t('自定义难度', 'Custom'), desc: t('自选出题范围与规则', 'Choose your own range & rules') }
                   ].map(item => (
                     <button
                       key={item.id}
@@ -304,15 +313,15 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 2. 包含的运算类型 (可多选) */}
               <div>
                 <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center justify-between">
-                  <span>包含的运算类型（多选）</span>
-                  <span className="text-xs text-slate-400">已激活 {selectedOps.length} 种运算</span>
+                  <span>{t('包含的运算类型（多选）', 'Operations (multi-select)')}</span>
+                  <span className="text-xs text-slate-400">{t(`已激活 ${selectedOps.length} 种运算`, `${selectedOps.length} active`)}</span>
                 </label>
                 <div className="grid grid-cols-4 gap-2.5">
                   {[
-                    { op: 'add' as OperationType, sym: '+', name: '加法', desc: '正向聚合' },
-                    { op: 'subtract' as OperationType, sym: '-', name: '减法', desc: '退位反向' },
-                    { op: 'multiply' as OperationType, sym: '×', name: '乘法', desc: '口诀倍数' },
-                    { op: 'divide' as OperationType, sym: '÷', name: '除法', desc: '平均均分' }
+                    { op: 'add' as OperationType, sym: '+', name: t('加法', 'Add'), desc: t('正向聚合', 'Combine') },
+                    { op: 'subtract' as OperationType, sym: '-', name: t('减法', 'Subtract'), desc: t('退位反向', 'Take away') },
+                    { op: 'multiply' as OperationType, sym: '×', name: t('乘法', 'Multiply'), desc: t('口诀倍数', 'Times tables') },
+                    { op: 'divide' as OperationType, sym: '÷', name: t('除法', 'Divide'), desc: t('平均均分', 'Share equally') }
                   ].map(item => {
                     const active = selectedOps.includes(item.op);
                     return (
@@ -327,7 +336,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                         }`}
                       >
                         <span className="font-mono font-black text-xl mb-0.5">{item.sym}</span>
-                        <span className="text-xs">{item.name}</span>
+                        <span className="text-xs truncate max-w-full">{item.name}</span>
                       </button>
                     );
                   })}
@@ -337,14 +346,14 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 3. 每轮挑战题量 */}
               <div>
                 <label className="block text-sm font-bold text-slate-800 mb-2">
-                  每轮挑战练习题量
+                  {t('每轮挑战练习题量', 'Questions per round')}
                 </label>
                 <div className="grid grid-cols-4 gap-2.5">
                   {[
-                    { cnt: 10, label: '10 题', desc: '轻松快练' },
-                    { cnt: 15, label: '15 题', desc: '课标推荐' },
-                    { cnt: 20, label: '20 题', desc: '高效巩固' },
-                    { cnt: 30, label: '30 题', desc: '耐力冲刺' }
+                    { cnt: 10, label: t('10 题', '10 Qs'), desc: t('轻松快练', 'Quick') },
+                    { cnt: 15, label: t('15 题', '15 Qs'), desc: t('课标推荐', 'Standard') },
+                    { cnt: 20, label: t('20 题', '20 Qs'), desc: t('高效巩固', 'Reinforce') },
+                    { cnt: 30, label: t('30 题', '30 Qs'), desc: t('耐力冲刺', 'Endurance') }
                   ].map(item => (
                     <button
                       key={item.cnt}
@@ -357,7 +366,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                       }`}
                     >
                       <div className="text-sm sm:text-base font-bold font-mono">{item.label}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">{item.desc}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5 truncate">{item.desc}</div>
                     </button>
                   ))}
                 </div>
@@ -366,8 +375,8 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 4. 算式排版格式偏好 */}
               <div>
                 <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
-                  <span>算式显示格式偏好</span>
-                  <span className="text-xs text-amber-600 font-semibold">强烈推荐竖式立式</span>
+                  <span>{t('算式显示格式偏好', 'Equation layout')}</span>
+                  <span className="text-xs text-amber-600 font-semibold">{t('强烈推荐竖式立式', 'Vertical recommended')}</span>
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div
@@ -379,7 +388,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-slate-900">立式 (竖式优先)</span>
+                      <span className="font-bold text-sm text-slate-900">{t('立式 (竖式优先)', 'Vertical')}</span>
                       {equationLayout === 'vertical' && <Check className="w-4 h-4 text-amber-600" />}
                     </div>
                     {/* Visual mini-preview */}
@@ -392,7 +401,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                       <div className="text-amber-600 font-bold">63</div>
                     </div>
                     <p className="text-[11px] text-slate-500 text-center leading-tight">
-                      贴合小学课本笔算竖式规范，数位借进位清晰可查
+                      {t('贴合小学课本笔算竖式规范，数位借进位清晰可查', 'Matches textbook column method; carrying and borrowing are clear')}
                     </p>
                   </div>
 
@@ -405,7 +414,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-slate-900">横式优先</span>
+                      <span className="font-bold text-sm text-slate-900">{t('横式优先', 'Horizontal')}</span>
                       {equationLayout === 'horizontal' && <Check className="w-4 h-4 text-amber-600" />}
                     </div>
                     {/* Visual mini-preview */}
@@ -414,7 +423,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                       <span className="text-amber-600 font-bold ml-1">63</span>
                     </div>
                     <p className="text-[11px] text-slate-500 text-center leading-tight">
-                      传统经典单行横式，适合快速视读心算
+                      {t('传统经典单行横式，适合快速视读心算', 'Classic single line, great for quick mental math')}
                     </p>
                   </div>
 
@@ -427,15 +436,15 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-slate-900">智能推荐模式</span>
+                      <span className="font-bold text-sm text-slate-900">{t('智能推荐模式', 'Smart (Auto)')}</span>
                       {equationLayout === 'auto' && <Check className="w-4 h-4 text-amber-600" />}
                     </div>
                     {/* Visual mini-preview */}
                     <div className="my-2.5 py-3 px-3 bg-white rounded-xl border border-slate-200/80 flex items-center justify-center font-mono text-[11px] text-slate-700 mx-auto text-center shadow-2xs">
-                      两位数立式 · 简单乘除横式
+                      {t('两位数立式 · 简单乘除横式', '2-digit vertical · simple ×÷ inline')}
                     </div>
                     <p className="text-[11px] text-slate-500 text-center leading-tight">
-                      单数自动横式，大数进位进阶题自动立式
+                      {t('单数自动横式，大数进位进阶题自动立式', 'Simple ones inline, harder carrying ones vertical')}
                     </p>
                   </div>
                 </div>
@@ -444,15 +453,15 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 5. 单题建议时限节奏 */}
               <div>
                 <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
-                  <span>单题作答建议时限（均速基准）</span>
-                  <span className="text-xs text-slate-400">训练中隐藏倒计时数字，避免孩子焦虑</span>
+                  <span>{t('单题作答建议时限（均速基准）', 'Time per question (target pace)')}</span>
+                  <span className="text-xs text-slate-400">{t('训练中隐藏倒计时数字，避免孩子焦虑', 'Countdown hidden to avoid stress')}</span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {[
-                    { sec: 3, label: '3 秒', title: '极速挑战', desc: '强化直觉闪电口算' },
-                    { sec: 5, label: '5 秒', title: '标准推荐', desc: '学校标准心算节奏' },
-                    { sec: 8, label: '8 秒', title: '从容思考', desc: '适合复杂多位进位' },
-                    { sec: 0, label: '不限时', title: '稳扎稳打', desc: '专注正确率' }
+                    { sec: 3, label: t('3 秒', '3 s'), title: t('极速挑战', 'Lightning'), desc: t('强化直觉闪电口算', 'Build instant recall') },
+                    { sec: 5, label: t('5 秒', '5 s'), title: t('标准推荐', 'Standard'), desc: t('学校标准心算节奏', 'School standard pace') },
+                    { sec: 8, label: t('8 秒', '8 s'), title: t('从容思考', 'Relaxed'), desc: t('适合复杂多位进位', 'For harder carrying') },
+                    { sec: 0, label: t('不限时', 'No limit'), title: t('稳扎稳打', 'Steady'), desc: t('专注正确率', 'Focus on accuracy') }
                   ].map(pace => (
                     <button
                       key={pace.sec}
@@ -482,14 +491,14 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 1. 字号大小选择 */}
               <div>
                 <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
-                  <span>护眼字号放大缩放</span>
-                  <span className="text-xs text-slate-400">关爱小学生视力发育</span>
+                  <span>{t('护眼字号放大缩放', 'Eye-friendly font size')}</span>
+                  <span className="text-xs text-slate-400">{t('关爱小学生视力发育', 'Protect young eyes')}</span>
                 </label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { id: 'normal' as const, label: '标准舒适', desc: '100% 紧凑舒适', sample: 'text-lg' },
-                    { id: 'large' as const, label: '护眼放大', desc: '120% 清晰防疲劳', sample: 'text-xl font-bold' },
-                    { id: 'xl' as const, label: '超大字号', desc: '140% 低年级专享', sample: 'text-2xl font-black' }
+                    { id: 'normal' as const, label: t('标准舒适', 'Standard'), desc: t('100% 紧凑舒适', '100% compact'), sample: 'text-lg' },
+                    { id: 'large' as const, label: t('护眼放大', 'Large'), desc: t('120% 清晰防疲劳', '120% clearer'), sample: 'text-xl font-bold' },
+                    { id: 'xl' as const, label: t('超大字号', 'X-Large'), desc: t('140% 低年级专享', '140% young kids'), sample: 'text-2xl font-black' }
                   ].map(item => (
                     <button
                       key={item.id}
@@ -502,7 +511,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-xs text-slate-800">{item.label}</span>
+                        <span className="font-bold text-xs text-slate-800 truncate">{item.label}</span>
                         {fontSizeScale === item.id && <Check className="w-3.5 h-3.5 text-amber-600" />}
                       </div>
                       <div className={`font-mono text-slate-900 my-1 ${item.sample}`}>
@@ -517,7 +526,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 2. 所见即所得实时效果预览窗 */}
               <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-4 flex flex-col items-center justify-center">
                 <span className="text-xs font-bold text-slate-400 mb-2">
-                  👀 当前排版与字号预览效果（所见即所得）
+                  {t('👀 当前排版与字号预览效果（所见即所得）', '👀 Live preview of layout & font size')}
                 </span>
                 <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-xs flex flex-col items-center min-w-[180px]">
                   {equationLayout === 'horizontal' ? (
@@ -543,8 +552,12 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                     </div>
                   )}
                   <div className="text-[10px] text-slate-400 font-medium mt-2">
-                    {equationLayout === 'horizontal' ? '横式排版' : '竖式立式排版'} ·{' '}
-                    {fontSizeScale === 'xl' ? '超大字号' : fontSizeScale === 'large' ? '放大护眼' : '标准字号'}
+                    {equationLayout === 'horizontal' ? t('横式排版', 'Horizontal') : t('竖式立式排版', 'Vertical')} ·{' '}
+                    {fontSizeScale === 'xl'
+                      ? t('超大字号', 'X-Large')
+                      : fontSizeScale === 'large'
+                        ? t('放大护眼', 'Large')
+                        : t('标准字号', 'Standard')}
                   </div>
                 </div>
               </div>
@@ -557,9 +570,9 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                       <Zap className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-800">输入答案位数匹配时自动提交</div>
+                      <div className="text-xs font-bold text-slate-800">{t('输入答案位数匹配时自动提交', 'Auto-submit when digits are complete')}</div>
                       <div className="text-[10px] text-slate-500">
-                        无需每次点击确认按键，输满正确位数自动判定，适合触屏设备
+                        {t('无需每次点击确认按键，输满正确位数自动判定，适合触屏设备', 'No need to tap confirm; checks automatically. Great for touch screens')}
                       </div>
                     </div>
                   </div>
@@ -584,9 +597,9 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                       <Volume2 className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-800">答题正误语音与音效</div>
+                      <div className="text-xs font-bold text-slate-800">{t('答题正误语音与音效', 'Answer sound effects')}</div>
                       <div className="text-[10px] text-slate-500">
-                        答对清脆叮咚声，答错温柔提示声
+                        {t('答对清脆叮咚声，答错温柔提示声', 'Cheerful chime when right, gentle tone when wrong')}
                       </div>
                     </div>
                   </div>
@@ -611,9 +624,9 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                       <Sparkles className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-800">连击成就满分彩带礼花动效</div>
+                      <div className="text-xs font-bold text-slate-800">{t('连击成就满分彩带礼花动效', 'Confetti celebrations')}</div>
                       <div className="text-[10px] text-slate-500">
-                        通关与连击达成时燃放炫彩礼花，激发学习兴趣
+                        {t('通关与连击达成时燃放炫彩礼花，激发学习兴趣', 'Confetti on streaks and completed rounds to keep kids motivated')}
                       </div>
                     </div>
                   </div>
@@ -636,7 +649,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 4. 专属界面主题色 */}
               <div>
                 <label className="block text-sm font-bold text-slate-800 mb-2">
-                  个人专属界面主题色调
+                  {t('个人专属界面主题色调', 'Theme color')}
                 </label>
                 <div className="grid grid-cols-5 gap-2.5">
                   {THEME_OPTIONS.map(theme => (
@@ -651,7 +664,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                       }`}
                     >
                       <span className={`w-3 h-3 rounded-full ${theme.bgClass}`} />
-                      <span className="text-xs">{theme.label}</span>
+                      <span className="text-xs min-w-0 truncate">{theme.label}</span>
                     </button>
                   ))}
                 </div>
@@ -666,7 +679,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    学生姓名 / 昵称
+                    {t('学生姓名 / 昵称', 'Name / Nickname')}
                   </label>
                   <input
                     type="text"
@@ -674,13 +687,13 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                     onChange={e => setName(e.target.value)}
                     maxLength={10}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-bold bg-white"
-                    placeholder="输入学生姓名..."
+                    placeholder={t('输入学生姓名...', 'Enter name...')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    当前就读学段 (在口算规则中配置)
+                    {t('当前就读学段 (在口算规则中配置)', 'Current grade (set in Practice Rules)')}
                   </label>
                   <div className="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-700 text-sm font-semibold flex items-center justify-between">
                     <span>{formatGradeLabel(grade)}</span>
@@ -692,7 +705,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 2. 选择萌宠卡通头像 */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-2">
-                  选择萌宠/吉祥物专属头像
+                  {t('选择萌宠/吉祥物专属头像', 'Choose an avatar')}
                 </label>
                 <div className="grid grid-cols-6 sm:grid-cols-12 gap-2">
                   {AVATAR_OPTIONS.map(opt => (
@@ -715,7 +728,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               {/* 3. 励志座右铭 */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  专属口算励志座右铭（展示在首页上方）
+                  {t('专属口算励志座右铭（展示在首页上方）', 'Personal motto (shown on home page)')}
                 </label>
                 <input
                   type="text"
@@ -723,7 +736,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                   onChange={e => setMotto(e.target.value)}
                   maxLength={30}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium"
-                  placeholder="输入专属鼓励语..."
+                  placeholder={t('输入专属鼓励语...', 'Enter a motto...')}
                 />
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {MOTTO_PRESETS.map((preset, idx) => (
@@ -744,30 +757,30 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Award className="w-5 h-5 text-amber-600" />
-                    <span className="text-sm font-bold text-amber-950">心愿大奖激励计划</span>
+                    <span className="text-sm font-bold text-amber-950">{t('心愿大奖激励计划', 'Reward Plan')}</span>
                   </div>
-                  <span className="text-xs text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full font-bold">
-                    已积累：⭐ {student.currentStars || 0} 颗星
+                  <span className="text-xs text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full font-bold whitespace-nowrap">
+                    {t(`已积累：⭐ ${student.currentStars || 0} 颗星`, `Earned: ⭐ ${student.currentStars || 0}`)}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      梦想心愿名称
+                      {t('梦想心愿名称', 'Reward name')}
                     </label>
                     <input
                       type="text"
                       value={rewardGoalTitle}
                       onChange={e => setRewardGoalTitle(e.target.value)}
                       className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium"
-                      placeholder="如：去游乐园玩旋转木马、挑选一套乐高..."
+                      placeholder={t('如：去游乐园玩旋转木马、挑选一套乐高...', 'e.g. Amusement park trip, a LEGO set...')}
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      达成所需学习之星 (⭐)
+                      {t('达成所需学习之星 (⭐)', 'Stars needed (⭐)')}
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -778,7 +791,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                         onChange={e => setRewardGoalStarsNeeded(Number(e.target.value))}
                         className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-bold font-mono"
                       />
-                      <span className="text-xs text-amber-800 font-semibold whitespace-nowrap">颗星</span>
+                      <span className="text-xs text-amber-800 font-semibold whitespace-nowrap">{t('颗星', 'stars')}</span>
                     </div>
                   </div>
                 </div>
@@ -786,7 +799,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                 {/* 心愿进度条 */}
                 <div className="mt-4 pt-3 border-t border-amber-200/60">
                   <div className="flex justify-between text-xs text-amber-900 font-bold mb-1">
-                    <span>心愿达成进度</span>
+                    <span>{t('心愿达成进度', 'Reward progress')}</span>
                     <span>
                       {Math.min(100, Math.round(((student.currentStars || 0) / (rewardGoalStarsNeeded || 50)) * 100))}%
                     </span>
@@ -809,7 +822,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-2">
-                    每日口算打卡目标题量
+                    {t('每日口算打卡目标题量', 'Daily goal (questions)')}
                   </label>
                   <div className="grid grid-cols-4 gap-2">
                     {[10, 15, 20, 30].map(count => (
@@ -823,7 +836,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                             : 'border-slate-200 bg-white text-slate-700'
                         }`}
                       >
-                        <span className="text-sm font-mono">{count}题</span>
+                        <span className="text-sm font-mono">{t(`${count}题`, `${count}`)}</span>
                       </button>
                     ))}
                   </div>
@@ -831,7 +844,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-2">
-                    达标正确率要求
+                    {t('达标正确率要求', 'Target accuracy')}
                   </label>
                   <div className="grid grid-cols-4 gap-2">
                     {[80, 85, 90, 95].map(acc => (
@@ -858,7 +871,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
         {/* Modal 底部操作栏 */}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between shrink-0">
           <div className="text-xs text-slate-400 hidden sm:block">
-            设置将自动保存在当前设备，即刻在练习与错题集中生效
+            {t('设置将自动保存在当前设备，即刻在练习与错题集中生效', 'Saved on this device and applied instantly')}
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             <button
@@ -866,7 +879,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               onClick={onClose}
               className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200/80 rounded-xl transition-colors cursor-pointer"
             >
-              取消
+              {t('取消', 'Cancel')}
             </button>
             <button
               type="button"
@@ -874,7 +887,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               className="px-6 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
             >
               <Check className="w-4 h-4" />
-              <span>保存并应用设置</span>
+              <span className="whitespace-nowrap">{t('保存并应用设置', 'Save & Apply')}</span>
             </button>
           </div>
         </div>

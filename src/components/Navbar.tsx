@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { StudentProfile } from '../types/math';
 import { formatGradeLabel } from '../utils/storage';
+import { useLang } from '../i18n';
 
 interface NavbarProps {
   currentTab: 'practice' | 'banks' | 'mistakes' | 'parent' | 'mobile';
@@ -35,37 +36,38 @@ export const Navbar: React.FC<NavbarProps> = ({
   isMuted,
   onToggleMute
 }) => {
+  const { t, lang, toggleLang } = useLang();
   const navItems = [
-    { id: 'practice' as const, label: '口算训练', icon: Zap },
-    { id: 'mistakes' as const, label: '智能错题集', icon: Sliders, badge: mistakeCount },
-    { id: 'banks' as const, label: '题库组卷', icon: BookOpen },
-    { id: 'parent' as const, label: '家长学情看板', icon: BarChart3 },
-    { id: 'mobile' as const, label: '手机随身练', icon: Smartphone }
+    { id: 'practice' as const, label: t('口算训练', 'Practice'), icon: Zap },
+    { id: 'mistakes' as const, label: t('智能错题集', 'Mistakes'), icon: Sliders, badge: mistakeCount },
+    { id: 'banks' as const, label: t('题库组卷', 'Worksheets'), icon: BookOpen },
+    { id: 'parent' as const, label: t('家长学情看板', 'Parents'), icon: BarChart3 },
+    { id: 'mobile' as const, label: t('手机随身练', 'Mobile'), icon: Smartphone }
   ];
 
   return (
     <>
       {/* 顶部主导航栏 (桌面端与移动端顶部通用) */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-6">
           {/* 1. 左侧：品牌 Logo 与产品标语 */}
           <div
             onClick={() => onSelectTab('practice')}
-            className="flex items-center gap-2.5 cursor-pointer group shrink-0"
-            title="返回口算主页"
+            className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group shrink-0 min-w-0"
+            title={t('返回口算主页', 'Back to home')}
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-400 text-white flex items-center justify-center font-display font-black text-xl shadow-sm group-hover:scale-105 transition-transform">
-              象
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-400 text-white flex items-center justify-center font-display font-black text-lg sm:text-xl shadow-sm group-hover:scale-105 transition-transform shrink-0">
+              {t('象', 'E')}
             </div>
-            <div className="flex flex-col">
-              <span className="font-display font-black text-base sm:text-lg tracking-tight text-slate-900 leading-tight flex items-center gap-1.5">
-                小象速算
+            <div className="flex flex-col min-w-0">
+              <span className="font-display font-black text-sm sm:text-lg tracking-tight text-slate-900 leading-tight flex items-center gap-1.5 whitespace-nowrap">
+                {t('小象速算', 'Elephant Math')}
                 <span className="hidden sm:inline-block text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded-md">
-                  思维挑战
+                  {t('思维挑战', 'Brain Gym')}
                 </span>
               </span>
-              <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5">
-                小学生口算思维训练
+              <span className="text-[10px] text-slate-400 font-medium leading-none mt-0.5 whitespace-nowrap hidden xs:block sm:block">
+                {t('小学生口算思维训练', 'Mental math for kids')}
               </span>
             </div>
           </div>
@@ -106,29 +108,29 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* 3. 右侧：学生档案切换胶囊 + 学生专属设置 + 静音控制 */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* 当前学生登录卡片胶囊 (点击直接切换 Hanna / Danna 或添加学生) */}
             <button
               type="button"
               onClick={onOpenProfileModal}
-              className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 text-amber-950 transition-all shadow-2xs hover:shadow-xs group cursor-pointer active:scale-95"
-              title="点击切换正在练习的学生档案"
+              className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 text-amber-950 transition-all shadow-2xs hover:shadow-xs group cursor-pointer active:scale-95"
+              title={t('点击切换正在练习的学生档案', 'Switch student profile')}
             >
-              <span className="text-2xl group-hover:scale-110 transition-transform leading-none">
+              <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform leading-none">
                 {activeStudent.avatar}
               </span>
               <div className="flex flex-col text-left">
-                <div className="flex items-center gap-1.5 leading-tight">
-                  <span className="font-bold text-xs text-slate-900 max-w-[70px] sm:max-w-[100px] truncate">
+                <div className="flex items-center gap-1 sm:gap-1.5 leading-tight">
+                  <span className="font-bold text-xs text-slate-900 max-w-[56px] sm:max-w-[100px] truncate">
                     {activeStudent.name}
                   </span>
-                  <span className="text-[10px] text-amber-800 bg-amber-200/90 px-1.5 py-0.2 rounded-md font-bold">
+                  <span className="hidden sm:inline-block text-[10px] text-amber-800 bg-amber-200/90 px-1.5 py-0.2 rounded-md font-bold whitespace-nowrap">
                     {formatGradeLabel(activeStudent.grade)}
                   </span>
                 </div>
-                <div className="text-[10px] text-amber-600 font-semibold leading-tight flex items-center gap-1 mt-0.5">
-                  <span>⭐ {activeStudent.currentStars} 颗星</span>
-                  <span className="text-amber-500 text-[9px]">▾ 切换</span>
+                <div className="text-[10px] text-amber-600 font-semibold leading-tight flex items-center gap-1 mt-0.5 whitespace-nowrap">
+                  <span>⭐ {activeStudent.currentStars}{t(' 颗星', '')}</span>
+                  <span className="text-amber-500 text-[9px]">▾ {t('切换', 'Switch')}</span>
                 </div>
               </div>
             </button>
@@ -137,18 +139,29 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onOpenStudentSettings}
-              className="px-2.5 sm:px-3 py-2 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200/90 text-slate-700 hover:text-slate-950 transition-all shadow-2xs hover:shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95"
-              title="调整学生的口算难度、每组题量、立式排版与心愿奖励"
+              className="p-2 sm:px-3 sm:py-2 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200/90 text-slate-700 hover:text-slate-950 transition-all shadow-2xs hover:shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95"
+              title={t('调整学生的口算难度、每组题量、立式排版与心愿奖励', 'Adjust difficulty, questions per round, layout & rewards')}
             >
               <Settings className="w-4 h-4 text-amber-600 shrink-0" />
-              <span className="text-xs font-bold hidden sm:inline text-slate-800">设置</span>
+              <span className="text-xs font-bold hidden sm:inline text-slate-800">{t('设置', 'Settings')}</span>
+            </button>
+
+            {/* 中英文切换 */}
+            <button
+              type="button"
+              onClick={toggleLang}
+              title={lang === 'zh' ? 'Switch to English' : '切换到中文'}
+              aria-label={lang === 'zh' ? 'Switch to English' : '切换到中文'}
+              className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-2xl bg-slate-100 hover:bg-slate-200 text-amber-700 hover:text-amber-800 text-[11px] font-black leading-none flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+            >
+              {lang === 'zh' ? 'EN' : '中'}
             </button>
 
             {/* 静音快捷控制 */}
             <button
               type="button"
               onClick={onToggleMute}
-              title={isMuted ? '点击开启声音' : '点击静音'}
+              title={isMuted ? t('点击开启声音', 'Unmute') : t('点击静音', 'Mute')}
               className="p-2 sm:p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
             >
               {isMuted ? (

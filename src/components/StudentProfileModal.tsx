@@ -25,6 +25,7 @@ import {
   Settings
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useLang } from '../i18n';
 
 interface StudentProfileModalProps {
   isOpen: boolean;
@@ -37,14 +38,15 @@ interface StudentProfileModalProps {
 
 const AVATAR_OPTIONS = ['🦁', '🐰', '🐼', '🦊', '🐯', '🐻', '🐨', '🚀', '🦄', '🌟', '🐶', '🐱'];
 
-const GRADE_MAP: Record<GradeLevel, string> = {
-  grade1: '一年级 (20以内进退位)',
-  grade2: '二年级 (100以内&九九乘除)',
-  grade3: '三年级 (千以内乘除速算)',
-  grade4: '四年级 (多位数巧算简算)',
-  grade5_6: '五/六年级 (四则混合运算)',
-  custom: '自定义练习'
-};
+// 在渲染时解析，保证切换语言后即时更新
+const getGradeMap = (t: (zh: string, en: string) => string): Record<GradeLevel, string> => ({
+  grade1: t('一年级 (20以内进退位)', 'Grade 1 (within 20)'),
+  grade2: t('二年级 (100以内&九九乘除)', 'Grade 2 (within 100 & times tables)'),
+  grade3: t('三年级 (千以内乘除速算)', 'Grade 3 (×÷ within 1000)'),
+  grade4: t('四年级 (多位数巧算简算)', 'Grade 4 (multi-digit shortcuts)'),
+  grade5_6: t('五/六年级 (四则混合运算)', 'Grade 5/6 (mixed operations)'),
+  custom: t('自定义练习', 'Custom practice')
+});
 
 export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   isOpen,
@@ -54,6 +56,8 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   canDismiss = true,
   onOpenSettings
 }) => {
+  const { t } = useLang();
+  const GRADE_MAP = getGradeMap(t);
   const [profiles, setProfiles] = useState<StudentProfile[]>(getStudentProfiles());
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingProfile, setEditingProfile] = useState<StudentProfile | null>(null);
@@ -63,7 +67,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   const [avatarInput, setAvatarInput] = useState<string>('🦁');
   const [gradeInput, setGradeInput] = useState<GradeLevel>('grade2');
   const [dailyTargetInput, setDailyTargetInput] = useState<number>(20);
-  const [rewardTitleInput, setRewardTitleInput] = useState<string>('去游乐园玩');
+  const [rewardTitleInput, setRewardTitleInput] = useState<string>(t('去游乐园玩', 'Trip to the amusement park'));
   const [rewardStarsInput, setRewardStarsInput] = useState<number>(50);
 
   // 每次打开弹窗或设置发生变更时，确保从 localStorage 重新载入最新所有学生列表
@@ -103,7 +107,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
     setAvatarInput('🐼');
     setGradeInput('grade2');
     setDailyTargetInput(20);
-    setRewardTitleInput('看电影吃爆米花');
+    setRewardTitleInput(t('看电影吃爆米花', 'Movie night with popcorn'));
     setRewardStarsInput(50);
     setIsEditing(true);
   };
@@ -132,7 +136,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
         avatar: avatarInput,
         grade: gradeInput,
         dailyTargetCount: dailyTargetInput,
-        rewardGoalTitle: rewardTitleInput.trim() || '奖励愿望',
+        rewardGoalTitle: rewardTitleInput.trim() || t('奖励愿望', 'Reward wish'),
         rewardGoalStarsNeeded: rewardStarsInput
       };
       updateStudentProfile(updated);
@@ -148,7 +152,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
         grade: gradeInput,
         dailyTargetCount: dailyTargetInput,
         targetAccuracyRate: 90,
-        rewardGoalTitle: rewardTitleInput.trim() || '奖励愿望',
+        rewardGoalTitle: rewardTitleInput.trim() || t('奖励愿望', 'Reward wish'),
         rewardGoalStarsNeeded: rewardStarsInput,
         currentStars: 0
       });
@@ -163,10 +167,10 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   const handleDeleteProfile = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (profiles.length <= 1) {
-      alert('至少需要保留一名学生档案哦！');
+      alert(t('至少需要保留一名学生档案哦！', 'At least one student profile must remain!'));
       return;
     }
-    if (confirm('确定要删除该学生档案吗？')) {
+    if (confirm(t('确定要删除该学生档案吗？', 'Delete this student profile?'))) {
       deleteStudentProfile(id);
       refreshList();
       if (id === currentStudentId) {
@@ -200,10 +204,13 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                 🎒
               </div>
               <h2 className="text-2xl font-display font-extrabold text-slate-900">
-                请选择正在练习的小朋友
+                {t('请选择正在练习的小朋友', 'Who is practicing today?')}
               </h2>
               <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">
-                支持多名学生独立登录，各自拥有独立的错题集、学习星级勋章与学情档案。
+                {t(
+                  '支持多名学生独立登录，各自拥有独立的错题集、学习星级勋章与学情档案。',
+                  'Each student has their own mistake book, stars, badges and progress records.'
+                )}
               </p>
             </div>
 
@@ -235,12 +242,12 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                               {student.name}
                             </span>
                             {isSelected && (
-                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                                当前登录
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                {t('当前登录', 'Active')}
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-amber-700 font-medium mt-0.5">
+                          <div className="text-xs text-amber-700 font-medium mt-0.5 leading-tight">
                             {GRADE_MAP[student.grade] || student.grade}
                           </div>
                         </div>
@@ -256,7 +263,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                               onOpenSettings(student);
                             }}
                             className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-white rounded-lg transition-colors cursor-pointer"
-                            title="学生专属个人设置 (算式立式、节奏、护眼字号)"
+                            title={t('学生专属个人设置 (算式立式、节奏、护眼字号)', 'Student settings (layout, pace, font size)')}
                           >
                             <Settings className="w-3.5 h-3.5" />
                           </button>
@@ -267,7 +274,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                             type="button"
                             onClick={e => handleDeleteProfile(e, student.id)}
                             className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-white rounded-lg transition-colors cursor-pointer"
-                            title="删除档案"
+                            title={t('删除档案', 'Delete profile')}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -279,10 +286,10 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                     <div className="grid grid-cols-2 gap-2 my-3 p-2.5 bg-white rounded-xl border border-slate-100 text-xs">
                       <div className="flex items-center gap-1 text-slate-600">
                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span>星星: <strong className="text-slate-900 font-bold">{student.currentStars}</strong> 颗</span>
+                        <span>{t('星星', 'Stars')}: <strong className="text-slate-900 font-bold">{student.currentStars}</strong>{t(' 颗', '')}</span>
                       </div>
                       <div className="text-right text-slate-600">
-                        待攻克: <strong className="text-rose-600 font-bold">{unmasteredCount}</strong> 题
+                        {t('待攻克', 'To fix')}: <strong className="text-rose-600 font-bold">{unmasteredCount}</strong>{t(' 题', '')}
                       </div>
                     </div>
 
@@ -295,7 +302,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                         type="button"
                         className="py-1 px-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg transition-colors flex items-center gap-1 shadow-xs"
                       >
-                        <span>进入练习</span>
+                        <span className="whitespace-nowrap">{t('进入练习', 'Start')}</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -312,10 +319,10 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div className="font-bold text-slate-700 group-hover:text-amber-800 text-sm">
-                  + 添加新学生档案
+                  {t('+ 添加新学生档案', '+ Add New Student')}
                 </div>
                 <div className="text-[11px] text-slate-400 mt-0.5">
-                  为二胎宝贝或新同学创建专属档案
+                  {t('为二胎宝贝或新同学创建专属档案', 'Create a profile for a sibling or new student')}
                 </div>
               </div>
             </div>
@@ -325,14 +332,16 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
           <div>
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
               <h3 className="font-display font-bold text-xl text-slate-900">
-                {editingProfile ? `修改 ${editingProfile.name} 的学生档案` : '添加新学生档案'}
+                {editingProfile
+                  ? t(`修改 ${editingProfile.name} 的学生档案`, `Edit ${editingProfile.name}'s Profile`)
+                  : t('添加新学生档案', 'Add New Student')}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
                 className="text-xs text-slate-400 hover:text-slate-600"
               >
-                返回选择
+                {t('返回选择', 'Back')}
               </button>
             </div>
 
@@ -340,12 +349,12 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
               {/* Name */}
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1.5">
-                  学生姓名 / 昵称
+                  {t('学生姓名 / 昵称', 'Name / Nickname')}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="如：Hanna、Danna、阳阳"
+                  placeholder={t('如：Hanna、Danna、阳阳', 'e.g. Hanna, Danna, Leo')}
                   value={nameInput}
                   onChange={e => setNameInput(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500 text-sm font-medium"
@@ -355,7 +364,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
               {/* Avatar Selector */}
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1.5">
-                  选择萌宠专属头像
+                  {t('选择萌宠专属头像', 'Choose an avatar')}
                 </label>
                 <div className="grid grid-cols-6 gap-2">
                   {AVATAR_OPTIONS.map(emoji => (
@@ -378,18 +387,18 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
               {/* Grade */}
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1.5">
-                  当前在读年级
+                  {t('当前在读年级', 'Current grade')}
                 </label>
                 <select
                   value={gradeInput}
                   onChange={e => setGradeInput(e.target.value as GradeLevel)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500 text-sm font-medium bg-white"
                 >
-                  <option value="grade1">一年级 (20以内凑十破十)</option>
-                  <option value="grade2">二年级 (100以内加减·表内乘除)</option>
-                  <option value="grade3">三年级 (多位数乘除·万以内速算)</option>
-                  <option value="grade4">四年级 (简便巧算·两三位数速算)</option>
-                  <option value="grade5_6">五/六年级 (四则混合极限速算)</option>
+                  <option value="grade1">{t('一年级 (20以内凑十破十)', 'Grade 1 (within 20, make-ten)')}</option>
+                  <option value="grade2">{t('二年级 (100以内加减·表内乘除)', 'Grade 2 (±within 100 · times tables)')}</option>
+                  <option value="grade3">{t('三年级 (多位数乘除·万以内速算)', 'Grade 3 (multi-digit ×÷ · within 10,000)')}</option>
+                  <option value="grade4">{t('四年级 (简便巧算·两三位数速算)', 'Grade 4 (shortcuts · 2–3 digit mental math)')}</option>
+                  <option value="grade5_6">{t('五/六年级 (四则混合极限速算)', 'Grade 5/6 (mixed operations speed math)')}</option>
                 </select>
               </div>
 
@@ -397,7 +406,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1.5">
-                    每日口算目标 (题/天)
+                    {t('每日口算目标 (题/天)', 'Daily goal (questions)')}
                   </label>
                   <input
                     type="number"
@@ -410,7 +419,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-700 block mb-1.5">
-                    心愿所需星星数
+                    {t('心愿所需星星数', 'Stars for reward')}
                   </label>
                   <input
                     type="number"
@@ -425,11 +434,11 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
 
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1.5">
-                  学习激励愿望 (家长承诺给孩子的奖励)
+                  {t('学习激励愿望 (家长承诺给孩子的奖励)', 'Reward wish (promised by parent)')}
                 </label>
                 <input
                   type="text"
-                  placeholder="如：去游乐园玩旋转木马、买一套乐高"
+                  placeholder={t('如：去游乐园玩旋转木马、买一套乐高', 'e.g. Amusement park trip, a LEGO set')}
                   value={rewardTitleInput}
                   onChange={e => setRewardTitleInput(e.target.value)}
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-medium"
@@ -443,13 +452,13 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                   onClick={() => setIsEditing(false)}
                   className="flex-1 py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-600 text-sm hover:bg-slate-50 transition-colors"
                 >
-                  取消
+                  {t('取消', 'Cancel')}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow-sm transition-colors"
                 >
-                  保存档案
+                  {t('保存档案', 'Save Profile')}
                 </button>
               </div>
             </form>

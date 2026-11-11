@@ -31,6 +31,7 @@ import {
   HelpCircle,
   FolderOpen
 } from 'lucide-react';
+import { useLang } from '../i18n';
 
 interface QuestionBankManagerProps {
   onStartPracticeWithRule: (rule: QuestionBankRule, count: number) => void;
@@ -43,6 +44,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
   onPrintQuestions,
   onBackToPractice
 }) => {
+  const { t } = useLang();
   // Current Editing Rule
   const [selectedOps, setSelectedOps] = useState<OperationType[]>(['add', 'subtract']);
   const [num1Digits, setNum1Digits] = useState<number>(2); // 2位数
@@ -120,11 +122,14 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
 
   // Save custom bank
   const handleSaveBank = () => {
-    const name = customBankName.trim() || `${num1Digits}位数与${num2Digits}位数综合训练`;
+    const name = customBankName.trim() || t(`${num1Digits}位数与${num2Digits}位数综合训练`, `${num1Digits}-digit & ${num2Digits}-digit Mixed Practice`);
     const newBank: QuestionBankRule = {
       id: 'custom_bank_' + Date.now(),
       name,
-      description: `包含 ${selectedOps.map(o => o === 'add' ? '加' : o === 'subtract' ? '减' : o === 'multiply' ? '乘' : '除').join('、')}，${num1Digits}位与${num2Digits}位`,
+      description: t(
+        `包含 ${selectedOps.map(o => o === 'add' ? '加' : o === 'subtract' ? '减' : o === 'multiply' ? '乘' : '除').join('、')}，${num1Digits}位与${num2Digits}位`,
+        `Includes ${selectedOps.map(o => o === 'add' ? 'addition' : o === 'subtract' ? 'subtraction' : o === 'multiply' ? 'multiplication' : 'division').join(', ')}; ${num1Digits}-digit & ${num2Digits}-digit`
+      ),
       operations: selectedOps,
       num1Digits,
       num2Digits,
@@ -136,13 +141,13 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
     };
     saveCustomBank(newBank);
     refreshBanks();
-    alert(`成功保存题库：“${name}”！可随时在题库中心调用。`);
+    alert(t(`成功保存题库：“${name}”！可随时在题库中心调用。`, `Saved question bank "${name}"! You can use it anytime from the Library.`));
   };
 
   // Delete custom bank
   const handleDeleteBank = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('确定要删除这个自定义题库吗？')) {
+    if (confirm(t('确定要删除这个自定义题库吗？', 'Delete this custom question bank?'))) {
       deleteCustomBank(id);
       refreshBanks();
     }
@@ -167,7 +172,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
       num2: n2,
       operatorSymbol: manualOp,
       correctAnswer: ans,
-      methodTip: manualNote.trim() || '家长精选练习题'
+      methodTip: manualNote.trim() || t('家长精选练习题', 'Parent-picked question')
     };
     addCustomManualQuestion(item);
     setManualNum1('');
@@ -191,15 +196,15 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
         operatorSymbol: m.operatorSymbol,
         correctAnswer: m.correctAnswer,
         explanation: `${m.num1} ${m.operatorSymbol} ${m.num2} = ${m.correctAnswer}。`,
-        methodTip: m.methodTip || '手动录入题',
-        difficultyGrade: '精选题'
+        methodTip: m.methodTip || t('手动录入题', 'Manually added'),
+        difficultyGrade: t('精选题', 'Picked')
       };
     });
     // Wrap as a rule and start
     const fakeRule: QuestionBankRule = {
       id: 'manual_active',
-      name: '家长精选专属特训题库',
-      description: '手动录入的题目',
+      name: t('家长精选专属特训题库', 'Parent-Picked Practice Set'),
+      description: t('手动录入的题目', 'Manually entered questions'),
       operations: ['add'],
       num1Digits: 2,
       num2Digits: 1,
@@ -216,17 +221,17 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
           onClick={onBackToPractice}
           className="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition-all shadow-2xs"
         >
-          <span>← 返回口算训练首页</span>
+          <span>{t('← 返回口算训练首页', '← Back to Practice')}</span>
         </button>
       )}
       {/* Title & Tab Segmented Control */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-slate-900">
-            题库管理与精准出题系统
+            {t('题库管理与精准出题系统', 'Question Bank Manager')}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            自由组合加、减、乘、除运算与数字位数，一键生成针对性口算题库，支持一键开练与打印。
+            {t('自由组合加、减、乘、除运算与数字位数，一键生成针对性口算题库，支持一键开练与打印。', 'Mix +, −, ×, ÷ and digit counts to build targeted question banks. Practice or print in one click.')}
           </p>
         </div>
 
@@ -241,7 +246,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            自定义参数出题
+            {t('自定义参数出题', 'Custom')}
           </button>
           <button
             type="button"
@@ -252,7 +257,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span>题库中心</span>
+            <span>{t('题库中心', 'Library')}</span>
             <span className="text-[11px] font-mono text-slate-400">({banks.length})</span>
           </button>
           <button
@@ -264,7 +269,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span>手动录题</span>
+            <span>{t('手动录题', 'Manual')}</span>
             {manualList.length > 0 && (
               <span className="text-[11px] font-mono text-amber-600">({manualList.length})</span>
             )}
@@ -281,17 +286,17 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                  1. 单独选择运算类型 (加减乘除自由组合)
+                  {t('1. 单独选择运算类型 (加减乘除自由组合)', '1. Choose operations (mix freely)')}
                 </span>
-                <span className="text-[11px] text-slate-400">已选 {selectedOps.length} 种</span>
+                <span className="text-[11px] text-slate-400">{t(`已选 ${selectedOps.length} 种`, `${selectedOps.length} selected`)}</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {[
-                  { op: 'add' as OperationType, sym: '+', name: '加法运算', hint: '进位/不进位' },
-                  { op: 'subtract' as OperationType, sym: '-', name: '减法运算', hint: '退位/不退位' },
-                  { op: 'multiply' as OperationType, sym: '×', name: '乘法运算', hint: '表内乘/多位数' },
-                  { op: 'divide' as OperationType, sym: '÷', name: '除法运算', hint: '整除/逆算' }
+                  { op: 'add' as OperationType, sym: '+', name: t('加法运算', 'Addition'), hint: t('进位/不进位', 'Carry / no carry') },
+                  { op: 'subtract' as OperationType, sym: '-', name: t('减法运算', 'Subtraction'), hint: t('退位/不退位', 'Borrow / no borrow') },
+                  { op: 'multiply' as OperationType, sym: '×', name: t('乘法运算', 'Multiplication'), hint: t('表内乘/多位数', 'Times tables / multi-digit') },
+                  { op: 'divide' as OperationType, sym: '÷', name: t('除法运算', 'Division'), hint: t('整除/逆算', 'Exact / inverse') }
                 ].map(item => {
                   const active = selectedOps.includes(item.op);
                   return (
@@ -321,18 +326,18 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
             <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
               <div className="text-xs font-semibold text-slate-900 mb-3 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                2. 精确设置数值位数 (几位数)
+                {t('2. 精确设置数值位数 (几位数)', '2. Set number of digits')}
               </div>
 
               {/* Quick Digit Pair Presets */}
               <div className="mb-4">
-                <span className="text-[11px] text-slate-500 block mb-1.5">常用学段位数推荐：</span>
+                <span className="text-[11px] text-slate-500 block mb-1.5">{t('常用学段位数推荐：', 'Common presets:')}</span>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { n1: 1, n2: 1, label: '一位数与一位数 (1位×1位)' },
-                    { n1: 2, n2: 1, label: '两位数与一位数 (2位×1位)' },
-                    { n1: 2, n2: 2, label: '两位数与两位数 (2位×2位)' },
-                    { n1: 3, n2: 2, label: '三位数与两位数 (3位×2位)' }
+                    { n1: 1, n2: 1, label: t('一位数与一位数 (1位×1位)', '1-digit & 1-digit') },
+                    { n1: 2, n2: 1, label: t('两位数与一位数 (2位×1位)', '2-digit & 1-digit') },
+                    { n1: 2, n2: 2, label: t('两位数与两位数 (2位×2位)', '2-digit & 2-digit') },
+                    { n1: 3, n2: 2, label: t('三位数与两位数 (3位×2位)', '3-digit & 2-digit') }
                   ].map(preset => (
                     <button
                       key={preset.label}
@@ -357,8 +362,8 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                 {/* Num 1 Digits */}
                 <div>
                   <div className="flex items-center justify-between text-xs font-medium text-slate-700 mb-2">
-                    <span>第一个数字位数 (被操作数)</span>
-                    <span className="font-mono font-bold text-amber-600 text-sm">{num1Digits} 位数</span>
+                    <span>{t('第一个数字位数 (被操作数)', 'First number digits')}</span>
+                    <span className="font-mono font-bold text-amber-600 text-sm">{t(`${num1Digits} 位数`, `${num1Digits}-digit`)}</span>
                   </div>
                   <div className="grid grid-cols-4 gap-1.5">
                     {[1, 2, 3, 4].map(d => (
@@ -372,20 +377,20 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                             : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                         }`}
                       >
-                        {d} 位数
+                        {t(`${d} 位数`, `${d}-digit`)}
                       </button>
                     ))}
                   </div>
                   <div className="text-[10px] text-slate-400 mt-1">
-                    数值范围: {num1Digits === 1 ? '1 ~ 9' : `${Math.pow(10, num1Digits - 1)} ~ ${Math.pow(10, num1Digits) - 1}`}
+                    {t('数值范围: ', 'Range: ')}{num1Digits === 1 ? '1 ~ 9' : `${Math.pow(10, num1Digits - 1)} ~ ${Math.pow(10, num1Digits) - 1}`}
                   </div>
                 </div>
 
                 {/* Num 2 Digits */}
                 <div>
                   <div className="flex items-center justify-between text-xs font-medium text-slate-700 mb-2">
-                    <span>第二个数字位数 (操作数)</span>
-                    <span className="font-mono font-bold text-amber-600 text-sm">{num2Digits} 位数</span>
+                    <span>{t('第二个数字位数 (操作数)', 'Second number digits')}</span>
+                    <span className="font-mono font-bold text-amber-600 text-sm">{t(`${num2Digits} 位数`, `${num2Digits}-digit`)}</span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
                     {[1, 2, 3].map(d => (
@@ -399,12 +404,12 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                             : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                         }`}
                       >
-                        {d} 位数
+                        {t(`${d} 位数`, `${d}-digit`)}
                       </button>
                     ))}
                   </div>
                   <div className="text-[10px] text-slate-400 mt-1">
-                    数值范围: {num2Digits === 1 ? '1 ~ 9' : `${Math.pow(10, num2Digits - 1)} ~ ${Math.pow(10, num2Digits) - 1}`}
+                    {t('数值范围: ', 'Range: ')}{num2Digits === 1 ? '1 ~ 9' : `${Math.pow(10, num2Digits - 1)} ~ ${Math.pow(10, num2Digits) - 1}`}
                   </div>
                 </div>
               </div>
@@ -414,14 +419,14 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
             <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
               <div className="text-xs font-semibold text-slate-900 mb-3 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                3. 口算思维约束规则
+                {t('3. 口算思维约束规则', '3. Constraint rules')}
               </div>
 
               <div className="space-y-2.5 text-xs">
                 <label className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer">
                   <div>
-                    <span className="font-medium text-slate-800">加法允许进位</span>
-                    <p className="text-[11px] text-slate-400">关闭后生成不进位加法（如 23+4=27，适合初学口算）</p>
+                    <span className="font-medium text-slate-800">{t('加法允许进位', 'Allow carrying in addition')}</span>
+                    <p className="text-[11px] text-slate-400">{t('关闭后生成不进位加法（如 23+4=27，适合初学口算）', 'When off, generates no-carry addition (e.g. 23+4=27), great for beginners')}</p>
                   </div>
                   <input
                     type="checkbox"
@@ -433,8 +438,8 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
 
                 <label className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer">
                   <div>
-                    <span className="font-medium text-slate-800">减法允许退位借位</span>
-                    <p className="text-[11px] text-slate-400">开启后生成含破十法题型，确保被减数大于减数（无负数）</p>
+                    <span className="font-medium text-slate-800">{t('减法允许退位借位', 'Allow borrowing in subtraction')}</span>
+                    <p className="text-[11px] text-slate-400">{t('开启后生成含破十法题型，确保被减数大于减数（无负数）', 'When on, includes borrowing questions; results are never negative')}</p>
                   </div>
                   <input
                     type="checkbox"
@@ -446,8 +451,8 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
 
                 <label className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer">
                   <div>
-                    <span className="font-medium text-slate-800">除法保证整除 (口算整商)</span>
-                    <p className="text-[11px] text-slate-400">开启后严格整除无余数，强化想乘算除表内口诀逆运算</p>
+                    <span className="font-medium text-slate-800">{t('除法保证整除 (口算整商)', 'Exact division only')}</span>
+                    <p className="text-[11px] text-slate-400">{t('开启后严格整除无余数，强化想乘算除表内口诀逆运算', 'When on, no remainders — reinforces division as inverse multiplication')}</p>
                   </div>
                   <input
                     type="checkbox"
@@ -463,7 +468,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
-                placeholder="为这套出题规则命名（如：三年级乘法拔高）"
+                placeholder={t('为这套出题规则命名（如：三年级乘法拔高）', 'Name this rule set (e.g. Grade 3 Multiplication)')}
                 value={customBankName}
                 onChange={e => setCustomBankName(e.target.value)}
                 className="flex-1 px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500"
@@ -474,7 +479,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                 className="px-4 py-2 text-xs font-semibold text-slate-800 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl transition-colors shrink-0 flex items-center justify-center gap-1.5"
               >
                 <BookmarkCheck className="w-4 h-4 text-amber-600" />
-                <span>保存到题库模板</span>
+                <span>{t('保存到题库模板', 'Save as Template')}</span>
               </button>
             </div>
           </div>
@@ -484,15 +489,15 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
             <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs sticky top-20">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">出题效果实时预览</h3>
+                  <h3 className="text-sm font-bold text-slate-900">{t('出题效果实时预览', 'Live Preview')}</h3>
                   <div className="text-[11px] text-slate-400">
-                    {num1Digits}位数 × {num2Digits}位数 · 运算 [{selectedOps.map(o => o === 'add' ? '+' : o === 'subtract' ? '-' : o === 'multiply' ? '×' : '÷').join(' ')}]
+                    {t(`${num1Digits}位数 × ${num2Digits}位数 · 运算`, `${num1Digits}-digit × ${num2Digits}-digit · Ops`)} [{selectedOps.map(o => o === 'add' ? '+' : o === 'subtract' ? '-' : o === 'multiply' ? '×' : '÷').join(' ')}]
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={updatePreview}
-                  title="刷新预览题目"
+                  title={t('刷新预览题目', 'Refresh preview')}
                   className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -531,8 +536,8 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                   onClick={() => {
                     const rule: QuestionBankRule = {
                       id: 'active_rule_' + Date.now(),
-                      name: customBankName || `${num1Digits}位与${num2Digits}位速算`,
-                      description: '即时配置题库',
+                      name: customBankName || t(`${num1Digits}位与${num2Digits}位速算`, `${num1Digits}-digit & ${num2Digits}-digit Speed Math`),
+                      description: t('即时配置题库', 'Instant custom bank'),
                       operations: selectedOps,
                       num1Digits,
                       num2Digits,
@@ -546,7 +551,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                   className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-display font-bold text-sm shadow-md shadow-amber-500/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
                 >
                   <Play className="w-4 h-4 fill-current" />
-                  <span>以此题库开启 5 秒口算挑战</span>
+                  <span>{t('以此题库开启 5 秒口算挑战', 'Start 5-Second Challenge')}</span>
                 </button>
 
                 <button
@@ -560,12 +565,12 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                       allowBorrow,
                       mustDivideClean
                     });
-                    onPrintQuestions(fullBatch, customBankName || `${num1Digits}位数与${num2Digits}位数综合口算题卷`);
+                    onPrintQuestions(fullBatch, customBankName || t(`${num1Digits}位数与${num2Digits}位数综合口算题卷`, `${num1Digits}-digit & ${num2Digits}-digit Mental Math Worksheet`));
                   }}
                   className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Printer className="w-4 h-4 text-slate-500" />
-                  <span>生成20题练习纸并打印/导出</span>
+                  <span>{t('生成20题练习纸并打印/导出', 'Print / Export 20-Question Worksheet')}</span>
                 </button>
               </div>
             </div>
@@ -576,7 +581,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
       {activeTab === 'library' && (
         <div className="mt-6 space-y-6">
           <div>
-            <h2 className="text-sm font-semibold text-slate-700 mb-3">预设经典题库</h2>
+            <h2 className="text-sm font-semibold text-slate-700 mb-3">{t('预设经典题库', 'Preset Banks')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {banks.filter(b => b.isPreset).map(b => (
                 <div
@@ -587,7 +592,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="font-bold text-sm text-slate-900">{b.name}</span>
                       <span className="text-[10px] font-mono text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                        {b.num1Digits}位×{b.num2Digits}位
+                        {t(`${b.num1Digits}位×${b.num2Digits}位`, `${b.num1Digits}d×${b.num2Digits}d`)}
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 mb-3">{b.description}</p>
@@ -607,14 +612,14 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                       className="flex-1 py-2 px-3 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition-colors flex items-center justify-center gap-1"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>开练此题库</span>
+                      <span>{t('开练此题库', 'Practice')}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => applyPresetRule(b)}
                       className="py-2 px-3 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
                     >
-                      编辑参数
+                      {t('编辑参数', 'Edit')}
                     </button>
                   </div>
                 </div>
@@ -624,10 +629,10 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
 
           {/* Custom Saved Banks */}
           <div>
-            <h2 className="text-sm font-semibold text-slate-700 mb-3">我的自定义题库</h2>
+            <h2 className="text-sm font-semibold text-slate-700 mb-3">{t('我的自定义题库', 'My Custom Banks')}</h2>
             {banks.filter(b => !b.isPreset).length === 0 ? (
               <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-8 text-center text-slate-400 text-xs">
-                暂无保存的自定义题库。您可以在“自定义参数出题”中配置并点击“保存到题库模板”。
+                {t('暂无保存的自定义题库。您可以在“自定义参数出题”中配置并点击“保存到题库模板”。', 'No custom banks yet. Configure one under "Custom" and click "Save as Template".')}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -642,7 +647,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                         <button
                           type="button"
                           onClick={(e) => handleDeleteBank(b.id, e)}
-                          title="删除题库"
+                          title={t('删除题库', 'Delete bank')}
                           className="p-1 text-slate-400 hover:text-rose-500"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -665,14 +670,14 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                         className="flex-1 py-2 px-3 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition-colors flex items-center justify-center gap-1"
                       >
                         <Play className="w-3.5 h-3.5 fill-current" />
-                        <span>开始挑战</span>
+                        <span>{t('开始挑战', 'Start')}</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPresetRule(b)}
                         className="py-2 px-3 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
                       >
-                        载入出题
+                        {t('载入出题', 'Load')}
                       </button>
                     </div>
                   </div>
@@ -687,14 +692,14 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
         <div className="mt-6 grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Manual Entry Form */}
           <div className="md:col-span-5 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-            <h2 className="text-sm font-bold text-slate-900 mb-1">手动录入课本易错题</h2>
-            <p className="text-xs text-slate-500 mb-4">家长可将学校作业或试卷上的典型题录入，进入专属特训。</p>
+            <h2 className="text-sm font-bold text-slate-900 mb-1">{t('手动录入课本易错题', 'Add Tricky Questions Manually')}</h2>
+            <p className="text-xs text-slate-500 mb-4">{t('家长可将学校作业或试卷上的典型题录入，进入专属特训。', 'Enter typical questions from homework or tests for focused practice.')}</p>
 
             <form onSubmit={handleAddManual} className="space-y-4">
               <div className="flex items-center gap-2">
                 <input
                   type="number"
-                  placeholder="数字1"
+                  placeholder={t('数字1', 'Num 1')}
                   required
                   value={manualNum1}
                   onChange={e => setManualNum1(e.target.value)}
@@ -714,7 +719,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
 
                 <input
                   type="number"
-                  placeholder="数字2"
+                  placeholder={t('数字2', 'Num 2')}
                   required
                   value={manualNum2}
                   onChange={e => setManualNum2(e.target.value)}
@@ -725,7 +730,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
               <div>
                 <input
                   type="text"
-                  placeholder="解题提示或口诀（选填，如：七八五十六）"
+                  placeholder={t('解题提示或口诀（选填，如：七八五十六）', 'Hint or rhyme (optional, e.g. 7×8=56)')}
                   value={manualNote}
                   onChange={e => setManualNote(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500"
@@ -737,7 +742,7 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                 className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
-                <span>加入题库</span>
+                <span>{t('加入题库', 'Add to Bank')}</span>
               </button>
             </form>
           </div>
@@ -746,8 +751,8 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
           <div className="md:col-span-7 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">精选题库清单</h3>
-                <span className="text-xs text-slate-400">共 {manualList.length} 道题目</span>
+                <h3 className="text-sm font-bold text-slate-900">{t('精选题库清单', 'Picked Questions')}</h3>
+                <span className="text-xs text-slate-400">{t(`共 ${manualList.length} 道题目`, `${manualList.length} questions`)}</span>
               </div>
 
               {manualList.length > 0 && (
@@ -757,14 +762,14 @@ export const QuestionBankManager: React.FC<QuestionBankManagerProps> = ({
                   className="py-1.5 px-3 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-1"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>挑战这套精选题</span>
+                  <span>{t('挑战这套精选题', 'Practice Set')}</span>
                 </button>
               )}
             </div>
 
             {manualList.length === 0 ? (
               <div className="py-12 text-center text-xs text-slate-400">
-                暂未录入精选题。在左侧输入数字和符号后点击“加入题库”。
+                {t('暂未录入精选题。在左侧输入数字和符号后点击“加入题库”。', 'No questions yet. Enter numbers and an operator, then click "Add to Bank".')}
               </div>
             ) : (
               <div className="mt-3 max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">

@@ -20,6 +20,7 @@ import {
 } from '../utils/storage';
 import { evaluateBadges, calculateBadgeStats } from '../utils/badgeSystem';
 import { PrintCertificateModal } from './PrintCertificateModal';
+import { useLang } from '../i18n';
 import {
   Users,
   Target,
@@ -63,6 +64,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   onStudentUpdated,
   onOpenMobileSync
 }) => {
+  const { t, lang } = useLang();
   const [settings, setSettings] = useState<ParentSettings>(getParentSettings());
   const [sessions, setSessions] = useState<PracticeSessionResult[]>([]);
   const [mistakes, setMistakes] = useState<MistakeItem[]>([]);
@@ -112,10 +114,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     e.preventDefault();
     const updated: ParentSettings = {
       ...settings,
-      studentName: formName.trim() || '宝贝',
+      studentName: formName.trim() || t('宝贝', 'Kiddo'),
       dailyTargetCount: Number(formDailyTarget) || 20,
       targetAccuracyRate: Number(formTargetAcc) || 90,
-      rewardGoalTitle: formRewardGoal.trim() || '游乐园门票',
+      rewardGoalTitle: formRewardGoal.trim() || t('游乐园门票', 'Theme park tickets'),
       rewardGoalStarsNeeded: Number(formRewardStars) || 50
     };
     saveParentSettings(updated);
@@ -146,12 +148,12 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-display font-bold text-slate-900">
-              家长学情监控看板
+              {t('家长学情监控看板', 'Parent Dashboard')}
             </h1>
             <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">
-              {settings.studentName} 同学专属报告
+              {t(`${settings.studentName} 同学专属报告`, `${settings.studentName}'s Report`)}
             </span>
             {onOpenProfileModal && (
               <button
@@ -160,23 +162,23 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 className="text-xs font-semibold text-amber-700 bg-amber-100/70 hover:bg-amber-200/80 px-2 py-0.5 rounded-md transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Users className="w-3 h-3 text-amber-700" />
-                <span>切换学生</span>
+                <span>{t('切换学生', 'Switch')}</span>
               </button>
             )}
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            实时汇总每日口算打卡量、准确率曲线、5秒限时作答均速及薄弱知识点诊断。
+            {t('实时汇总每日口算打卡量、准确率曲线、5秒限时作答均速及薄弱知识点诊断。', 'Live summary of daily practice, accuracy trends, average speed in 5-second rounds and weak-spot diagnosis.')}
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
             onClick={() => setIsEditingSettings(true)}
             className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-1.5 shadow-xs"
           >
             <Settings className="w-3.5 h-3.5 text-slate-500" />
-            <span>设定目标与奖励</span>
+            <span>{t('设定目标与奖励', 'Goals & Rewards')}</span>
           </button>
 
           <button
@@ -185,7 +187,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors flex items-center gap-1.5 shadow-xs"
           >
             <Printer className="w-3.5 h-3.5 text-slate-500" />
-            <span>打印学情周报</span>
+            <span>{t('打印学情周报', 'Print Weekly Report')}</span>
           </button>
         </div>
       </div>
@@ -195,11 +197,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         {/* Today's Target Card */}
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-            <span>今日练习量</span>
+            <span className="truncate">{t('今日练习量', "Today's Practice")}</span>
             <Target className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-2xl sm:text-3xl font-mono font-extrabold text-slate-900 mt-1">
-            {todayQuestions} <span className="text-sm font-normal text-slate-400">/ {settings.dailyTargetCount} 题</span>
+            {todayQuestions} <span className="text-sm font-normal text-slate-400">/ {settings.dailyTargetCount}{t(' 题', '')}</span>
           </div>
           <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5">
             <div
@@ -207,54 +209,54 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               style={{ width: `${Math.min(100, Math.round((todayQuestions / settings.dailyTargetCount) * 100))}%` }}
             ></div>
           </div>
-          <div className="text-[11px] text-slate-400 mt-1.5 flex justify-between">
-            <span>今日准确率: {todayAcc}%</span>
-            <span>{todayQuestions >= settings.dailyTargetCount ? '✅ 已达标' : '加油冲刺'}</span>
+          <div className="text-[11px] text-slate-400 mt-1.5 flex justify-between gap-1">
+            <span className="truncate">{t('今日准确率', 'Acc')}: {todayAcc}%</span>
+            <span className="shrink-0">{todayQuestions >= settings.dailyTargetCount ? t('✅ 已达标', '✅ Met') : t('加油冲刺', 'Keep going')}</span>
           </div>
         </div>
 
         {/* Overall Accuracy */}
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-            <span>总体准确率</span>
+            <span className="truncate">{t('总体准确率', 'Overall Accuracy')}</span>
             <TrendingUp className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl sm:text-3xl font-mono font-extrabold text-slate-900 mt-1">
             {overallAcc}%
           </div>
           <div className="text-[11px] text-slate-400 mt-2">
-            累计答对 {totalCorrect} / 共 {totalSolved} 题
+            {t(`累计答对 ${totalCorrect} / 共 ${totalSolved} 题`, `${totalCorrect} / ${totalSolved} correct`)}
           </div>
           <div className="text-[11px] text-emerald-600 font-medium mt-1">
-            目标目标: ≥{settings.targetAccuracyRate}%
+            {t('目标目标', 'Target')}: ≥{settings.targetAccuracyRate}%
           </div>
         </div>
 
         {/* Average Speed */}
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-            <span>5秒限时平均速度</span>
+            <span className="truncate">{t('5秒限时平均速度', 'Avg Speed (5s)')}</span>
             <Clock className="w-4 h-4 text-blue-500" />
           </div>
           <div className="text-2xl sm:text-3xl font-mono font-extrabold text-slate-900 mt-1">
             {overallAvgSpeed}s
           </div>
           <div className="text-[11px] text-slate-400 mt-2">
-            单题倒计时上限: 5.0 秒
+            {t('单题倒计时上限: 5.0 秒', 'Time limit: 5.0s / Q')}
           </div>
           <div className="text-[11px] text-blue-600 font-medium mt-1">
-            反应速度评级: 极度敏捷
+            {t('反应速度评级: 极度敏捷', 'Rating: Lightning fast')}
           </div>
         </div>
 
         {/* Star Bank Reward */}
         <div className="bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white border border-amber-200/80 rounded-2xl p-4 shadow-xs">
           <div className="flex items-center justify-between text-xs text-amber-800 font-medium">
-            <span>家庭心愿奖励库</span>
+            <span className="truncate">{t('家庭心愿奖励库', 'Wish Rewards')}</span>
             <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400" />
           </div>
           <div className="text-2xl sm:text-3xl font-mono font-extrabold text-amber-900 mt-1">
-            {settings.currentStars} <span className="text-sm font-normal text-amber-700">/ {settings.rewardGoalStarsNeeded} 星</span>
+            {settings.currentStars} <span className="text-sm font-normal text-amber-700">/ {settings.rewardGoalStarsNeeded} {t('星', '★')}</span>
           </div>
           <div className="mt-2 w-full bg-amber-100 rounded-full h-1.5">
             <div
@@ -263,7 +265,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
             ></div>
           </div>
           <div className="text-[11px] text-amber-800 font-medium mt-1.5 truncate">
-            心愿: {settings.rewardGoalTitle}
+            {t('心愿', 'Wish')}: {settings.rewardGoalTitle}
           </div>
         </div>
       </div>
@@ -272,13 +274,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: 7-Day Trend Activity Chart (7 cols) */}
         <div className="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">近7天练习趋势与速度变化</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">柱高代表每日题量，折线代表单题平均耗时</p>
+          <div className="flex items-center justify-between gap-2 pb-4 border-b border-slate-100">
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-slate-900">{t('近7天练习趋势与速度变化', '7-Day Practice & Speed Trend')}</h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">{t('柱高代表每日题量，折线代表单题平均耗时', 'Bar height = daily questions; tooltip shows avg time per question')}</p>
             </div>
-            <span className="text-xs font-semibold text-slate-500">
-              近一周累计: {dailyStats.reduce((acc, d) => acc + d.questionCount, 0)} 题
+            <span className="text-xs font-semibold text-slate-500 shrink-0">
+              {t(`近一周累计: ${dailyStats.reduce((acc, d) => acc + d.questionCount, 0)} 题`, `Week: ${dailyStats.reduce((acc, d) => acc + d.questionCount, 0)} Qs`)}
             </span>
           </div>
 
@@ -293,7 +295,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
                     {/* Tooltip on hover */}
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] bg-slate-900 text-white px-1.5 py-0.5 rounded mb-1 whitespace-nowrap">
-                      {day.questionCount}题 · {day.accuracyRate}% · {day.avgSpeedSec}s
+                      {t(`${day.questionCount}题`, `${day.questionCount} Qs`)} · {day.accuracyRate}% · {day.avgSpeedSec}s
                     </div>
 
                     {/* Bar */}
@@ -316,14 +318,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               })}
             </div>
 
-            <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-amber-500 inline-block"></span>
-                <span>达到每日目标 (≥{settings.dailyTargetCount}题)</span>
+                <span>{t(`达到每日目标 (≥${settings.dailyTargetCount}题)`, `Goal met (≥${settings.dailyTargetCount} Qs)`)}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-slate-300 inline-block"></span>
-                <span>已练习未达标</span>
+                <span>{t('已练习未达标', 'Below goal')}</span>
               </div>
             </div>
           </div>
@@ -332,17 +334,17 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         {/* Right: AI Weak Point Diagnostic (5 cols) */}
         <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+            <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100 mb-3">
               <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                 <AlertTriangle className="w-4 h-4 text-amber-500" />
-                <span>薄弱知识点智能诊断</span>
+                <span>{t('薄弱知识点智能诊断', 'Weak Spot Diagnosis')}</span>
               </h2>
               <button
                 type="button"
                 onClick={onViewMistakes}
-                className="text-xs font-semibold text-amber-600 hover:text-amber-700"
+                className="text-xs font-semibold text-amber-600 hover:text-amber-700 shrink-0"
               >
-                查看错题集 ({mistakes.length})
+                {t('查看错题集', 'Mistakes')} ({mistakes.length})
               </button>
             </div>
 
@@ -352,13 +354,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   key={idx}
                   className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-xs space-y-1.5"
                 >
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-slate-900">{item.category}</span>
-                    <span className="font-mono text-amber-700">准确率 {item.accuracy}%</span>
+                  <div className="flex items-center justify-between gap-2 font-semibold">
+                    <span className="text-slate-900 min-w-0">{item.category}</span>
+                    <span className="font-mono text-amber-700 shrink-0">{t('准确率', 'Acc')} {item.accuracy}%</span>
                   </div>
                   <p className="text-slate-600">{item.description}</p>
                   <div className="pt-1 text-[11px] text-amber-800 font-medium bg-amber-50/60 p-2 rounded-lg">
-                    💡 家长辅导建议：{item.recommendation}
+                    💡 {t('家长辅导建议：', 'Tip for parents: ')}{item.recommendation}
                   </div>
                 </div>
               ))}
@@ -372,7 +374,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5"
             >
               <Zap className="w-3.5 h-3.5 fill-current" />
-              <span>陪孩子立即开启 5 秒专项挑战</span>
+              <span>{t('陪孩子立即开启 5 秒专项挑战', 'Start a 5-Second Challenge Together')}</span>
             </button>
           </div>
         </div>
@@ -382,28 +384,28 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs my-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-1.5">
                 <Medal className="w-5 h-5 text-amber-500" />
-                <span>数学达人学习勋章殿堂</span>
+                <span>{t('数学达人学习勋章殿堂', 'Math Badge Hall')}</span>
               </h2>
               <span className="text-xs font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-                已解锁 {badges.filter(b => b.unlocked).length} / {badges.length}
+                {t('已解锁', 'Unlocked')} {badges.filter(b => b.unlocked).length} / {badges.length}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              根据打卡天数与答对题量自动解锁成就徽章，家长可为孩子一键打印官方纸质荣誉证书！
+              {t('根据打卡天数与答对题量自动解锁成就徽章，家长可为孩子一键打印官方纸质荣誉证书！', 'Badges unlock automatically based on practice days and correct answers. Print a certificate for your child in one click!')}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Category Filter */}
             <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl text-xs">
               {[
-                { id: 'all', label: '全部勋章' },
-                { id: 'days', label: '天数勋章' },
-                { id: 'correct', label: '题量勋章' },
-                { id: 'special', label: '专项成就' }
+                { id: 'all', label: t('全部勋章', 'All') },
+                { id: 'days', label: t('天数勋章', 'Days') },
+                { id: 'correct', label: t('题量勋章', 'Solved') },
+                { id: 'special', label: t('专项成就', 'Special') }
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -431,7 +433,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 className="px-3 py-1.5 text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-xl transition-colors shrink-0 flex items-center gap-1"
               >
                 <Award className="w-4 h-4" />
-                <span>打印荣誉证书</span>
+                <span>{t('打印荣誉证书', 'Print Certificate')}</span>
               </button>
             )}
           </div>
@@ -448,16 +450,16 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
               if (badge.requirementType === 'days') {
                 progressPercent = Math.min(100, Math.round((badgeStats.distinctDays / badge.targetValue) * 100));
-                progressText = `已坚持 ${badgeStats.distinctDays} / ${badge.targetValue} 天`;
+                progressText = t(`已坚持 ${badgeStats.distinctDays} / ${badge.targetValue} 天`, `${badgeStats.distinctDays} / ${badge.targetValue} days`);
               } else if (badge.requirementType === 'correct') {
                 progressPercent = Math.min(100, Math.round((badgeStats.totalCorrect / badge.targetValue) * 100));
-                progressText = `已答对 ${badgeStats.totalCorrect} / ${badge.targetValue} 题`;
+                progressText = t(`已答对 ${badgeStats.totalCorrect} / ${badge.targetValue} 题`, `${badgeStats.totalCorrect} / ${badge.targetValue} correct`);
               } else if (badge.requirementType === 'speed') {
                 progressPercent = badge.unlocked ? 100 : badgeStats.bestSpeed > 0 ? 70 : 30;
-                progressText = badge.unlocked ? `最快 ${badgeStats.bestSpeed}s 达成` : `当前最快 ${badgeStats.bestSpeed}s (目标 ≤${badge.targetValue}s)`;
+                progressText = badge.unlocked ? t(`最快 ${badgeStats.bestSpeed}s 达成`, `Best ${badgeStats.bestSpeed}s`) : t(`当前最快 ${badgeStats.bestSpeed}s (目标 ≤${badge.targetValue}s)`, `Best ${badgeStats.bestSpeed}s (goal ≤${badge.targetValue}s)`);
               } else if (badge.requirementType === 'mistakes') {
                 progressPercent = Math.min(100, Math.round((badgeStats.masteredMistakesCount / badge.targetValue) * 100));
-                progressText = `已攻克 ${badgeStats.masteredMistakesCount} / ${badge.targetValue} 题`;
+                progressText = t(`已攻克 ${badgeStats.masteredMistakesCount} / ${badge.targetValue} 题`, `${badgeStats.masteredMistakesCount} / ${badge.targetValue} fixed`);
               }
 
               return (
@@ -483,22 +485,22 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                           {badge.iconEmoji}
                         </div>
                         <div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <span className="font-bold text-sm text-slate-900">{badge.title}</span>
                             {badge.unlocked ? (
                               <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded-md">
                                 <Check className="w-2.5 h-2.5 stroke-[3]" />
-                                已解锁
+                                {t('已解锁', 'Unlocked')}
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-0.5 text-[10px] text-slate-400">
                                 <Lock className="w-2.5 h-2.5" />
-                                未解锁
+                                {t('未解锁', 'Locked')}
                               </span>
                             )}
                           </div>
                           <span className="text-[10px] font-mono text-slate-400 uppercase">
-                            {badge.rarity === 'diamond' ? '💎 钻石' : badge.rarity === 'gold' ? '👑 黄金' : '🌟 进阶'} · {badge.category === 'days' ? '天数打卡' : badge.category === 'correct' ? '答对题量' : '专项技能'}
+                            {badge.rarity === 'diamond' ? t('💎 钻石', '💎 Diamond') : badge.rarity === 'gold' ? t('👑 黄金', '👑 Gold') : t('🌟 进阶', '🌟 Rising')} · {badge.category === 'days' ? t('天数打卡', 'Days') : badge.category === 'correct' ? t('答对题量', 'Correct') : t('专项技能', 'Skill')}
                           </span>
                         </div>
                       </div>
@@ -510,8 +512,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   {/* Bottom Progress & Certificate Print CTA */}
                   <div>
                     <div className="mb-2">
-                      <div className="flex justify-between text-[11px] font-mono text-slate-500 mb-1">
-                        <span>{progressText}</span>
+                      <div className="flex justify-between gap-2 text-[11px] font-mono text-slate-500 mb-1">
+                        <span className="min-w-0 truncate">{progressText}</span>
                         <span className="font-semibold">{progressPercent}%</span>
                       </div>
                       <div className="w-full bg-slate-200/80 rounded-full h-1.5 overflow-hidden">
@@ -534,11 +536,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         className="w-full mt-2 py-1.5 px-3 text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
                       >
                         <Award className="w-3.5 h-3.5" />
-                        <span>打印奖励证书</span>
+                        <span>{t('打印奖励证书', 'Print Certificate')}</span>
                       </button>
                     ) : (
                       <div className="text-[10px] text-center text-slate-400 mt-2 py-1">
-                        还需冲刺即可解锁
+                        {t('还需冲刺即可解锁', 'Keep going to unlock')}
                       </div>
                     )}
                   </div>
@@ -552,16 +554,16 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs my-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
           <div>
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <span>近期口算挑战记录与每题用时明细</span>
+            <h2 className="text-sm font-bold text-slate-900 flex flex-wrap items-center gap-2">
+              <span>{t('近期口算挑战记录与每题用时明细', 'Recent Challenges & Per-Question Times')}</span>
               <span className="text-[10px] font-normal text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
-                点击任意挑战可查看每道题对错与用时
+                {t('点击任意挑战可查看每道题对错与用时', 'Click a round for per-question details')}
               </span>
             </h2>
-            <p className="text-[11px] text-slate-400">保留历次速算闯关成绩，每题用时与准确率已完整归档</p>
+            <p className="text-[11px] text-slate-400">{t('保留历次速算闯关成绩，每题用时与准确率已完整归档', 'All past rounds are saved with per-question time and accuracy')}</p>
           </div>
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="text-xs text-slate-400">共记录 {sessions.length} 轮次</span>
+            <span className="text-xs text-slate-400">{t(`共记录 ${sessions.length} 轮次`, `${sessions.length} rounds`)}</span>
             {onOpenMobileSync && (
               <button
                 type="button"
@@ -569,27 +571,27 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 className="py-1 px-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold flex items-center gap-1 transition-colors"
               >
                 <Smartphone className="w-3.5 h-3.5" />
-                <span>同步至手机</span>
+                <span>{t('同步至手机', 'Sync to Phone')}</span>
               </button>
             )}
           </div>
         </div>
 
         {sessions.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-400">暂无测试记录</div>
+          <div className="py-8 text-center text-xs text-slate-400">{t('暂无测试记录', 'No records yet')}</div>
         ) : (
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="text-slate-400 border-b border-slate-100 pb-2">
-                  <th className="py-2 font-medium">练习时间</th>
-                  <th className="py-2 font-medium">挑战模式</th>
-                  <th className="py-2 font-medium">题量</th>
-                  <th className="py-2 font-medium">正确率</th>
-                  <th className="py-2 font-medium">平均速度</th>
-                  <th className="py-2 font-medium">错题/超时</th>
-                  <th className="py-2 font-medium">获得奖励</th>
-                  <th className="py-2 font-medium text-right pr-2">每题明细</th>
+                  <th className="py-2 font-medium">{t('练习时间', 'Time')}</th>
+                  <th className="py-2 font-medium">{t('挑战模式', 'Mode')}</th>
+                  <th className="py-2 font-medium">{t('题量', 'Qs')}</th>
+                  <th className="py-2 font-medium">{t('正确率', 'Accuracy')}</th>
+                  <th className="py-2 font-medium">{t('平均速度', 'Avg Speed')}</th>
+                  <th className="py-2 font-medium">{t('错题/超时', 'Wrong/Late')}</th>
+                  <th className="py-2 font-medium">{t('获得奖励', 'Reward')}</th>
+                  <th className="py-2 font-medium text-right pr-2">{t('每题明细', 'Details')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
@@ -604,21 +606,21 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     </td>
                     <td className="py-2.5 font-sans">
                       <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 text-slate-700">
-                        {s.challengeMode || '每日练习'}
+                        {s.challengeMode || t('每日练习', 'Daily Practice')}
                       </span>
                     </td>
-                    <td className="py-2.5 text-slate-800">{s.totalQuestions} 题</td>
+                    <td className="py-2.5 text-slate-800">{s.totalQuestions}{t(' 题', '')}</td>
                     <td className="py-2.5">
                       <span className={`font-semibold ${s.accuracyRate >= 90 ? 'text-emerald-600' : 'text-amber-600'}`}>
                         {s.accuracyRate}%
                       </span>
                     </td>
-                    <td className="py-2.5 text-slate-600">{s.averageTimeSec}s / 题</td>
+                    <td className="py-2.5 text-slate-600">{s.averageTimeSec}s{t(' / 题', '')}</td>
                     <td className="py-2.5 text-rose-600 font-medium">
-                      {s.wrongCount + s.timeoutCount} 题
+                      {s.wrongCount + s.timeoutCount}{t(' 题', '')}
                     </td>
                     <td className="py-2.5 text-amber-600 font-sans">
-                      +{s.starsEarned} 颗星 ⭐
+                      +{s.starsEarned}{t(' 颗星', '')} ⭐
                     </td>
                     <td className="py-2.5 text-right pr-2 font-sans">
                       <button
@@ -630,7 +632,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                         className="py-1 px-2.5 rounded-lg bg-slate-100 group-hover:bg-amber-500 group-hover:text-white text-slate-700 text-[11px] font-medium transition-colors inline-flex items-center gap-1"
                       >
                         <Eye className="w-3 h-3" />
-                        <span>查看明细</span>
+                        <span>{t('查看明细', 'View')}</span>
                       </button>
                     </td>
                   </tr>
@@ -655,42 +657,42 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
             {/* Header info */}
             <div className="pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex flex-wrap items-center gap-2 mb-1.5 pr-8">
                 <span className="text-xl">📊</span>
                 <h3 className="text-lg font-bold text-slate-900 font-display">
-                  {selectedSessionForDetail.studentName || settings.studentName} 的挑战答题记录与用时
+                  {t(`${selectedSessionForDetail.studentName || settings.studentName} 的挑战答题记录与用时`, `${selectedSessionForDetail.studentName || settings.studentName}'s Challenge Details`)}
                 </h3>
                 <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                  {selectedSessionForDetail.challengeMode || '每日练习'}
+                  {selectedSessionForDetail.challengeMode || t('每日练习', 'Daily Practice')}
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                测试时间：{new Date(selectedSessionForDetail.timestamp).toLocaleString('zh-CN')} · 详细记录每道题的做题准确率、孩子实际填写与精确用时
+                {t('测试时间：', 'Time: ')}{new Date(selectedSessionForDetail.timestamp).toLocaleString(lang === 'en' ? 'en-US' : 'zh-CN')} · {t('详细记录每道题的做题准确率、孩子实际填写与精确用时', 'Each question with result, child\'s answer and exact time')}
               </p>
             </div>
 
             {/* Quick KPI stats */}
             <div className="grid grid-cols-4 gap-2.5 my-4 text-center">
               <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-2xl">
-                <div className="text-[10px] text-slate-500">做题总数</div>
+                <div className="text-[10px] text-slate-500">{t('做题总数', 'Total')}</div>
                 <div className="text-lg font-mono font-bold text-slate-900 mt-0.5">
-                  {selectedSessionForDetail.totalQuestions} 题
+                  {selectedSessionForDetail.totalQuestions}{t(' 题', '')}
                 </div>
               </div>
               <div className="p-2.5 bg-emerald-50/70 border border-emerald-100 rounded-2xl">
-                <div className="text-[10px] text-emerald-700 font-medium">准确率</div>
+                <div className="text-[10px] text-emerald-700 font-medium">{t('准确率', 'Accuracy')}</div>
                 <div className="text-lg font-mono font-bold text-emerald-600 mt-0.5">
                   {selectedSessionForDetail.accuracyRate}%
                 </div>
               </div>
               <div className="p-2.5 bg-blue-50/70 border border-blue-100 rounded-2xl">
-                <div className="text-[10px] text-blue-700 font-medium">平均用时</div>
+                <div className="text-[10px] text-blue-700 font-medium">{t('平均用时', 'Avg Time')}</div>
                 <div className="text-lg font-mono font-bold text-blue-700 mt-0.5">
                   {selectedSessionForDetail.averageTimeSec}s
                 </div>
               </div>
               <div className="p-2.5 bg-amber-50/70 border border-amber-100 rounded-2xl">
-                <div className="text-[10px] text-amber-700 font-medium">获得奖励</div>
+                <div className="text-[10px] text-amber-700 font-medium">{t('获得奖励', 'Stars')}</div>
                 <div className="text-lg font-mono font-bold text-amber-600 mt-0.5">
                   +{selectedSessionForDetail.starsEarned} ⭐
                 </div>
@@ -699,16 +701,16 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
             {/* Question Breakdown List */}
             <div className="my-4">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-2">
-                <span>每道题答题详情 ({selectedSessionForDetail.attempts.length} 题)</span>
+              <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs font-semibold text-slate-700 mb-2">
+                <span>{t(`每道题答题详情 (${selectedSessionForDetail.attempts.length} 题)`, `Question Details (${selectedSessionForDetail.attempts.length})`)}</span>
                 <span className="text-[11px] text-slate-400 font-normal">
-                  对 {selectedSessionForDetail.correctCount} / 错 {selectedSessionForDetail.wrongCount} / 超时 {selectedSessionForDetail.timeoutCount}
+                  {t('对', 'Correct')} {selectedSessionForDetail.correctCount} / {t('错', 'Wrong')} {selectedSessionForDetail.wrongCount} / {t('超时', 'Timeout')} {selectedSessionForDetail.timeoutCount}
                 </span>
               </div>
 
               {selectedSessionForDetail.attempts.length === 0 ? (
                 <div className="py-8 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">
-                  暂未记录该轮具体每题答题流水
+                  {t('暂未记录该轮具体每题答题流水', 'No per-question log for this round')}
                 </div>
               ) : (
                 <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
@@ -731,14 +733,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                           <div className="font-mono font-bold text-sm text-slate-900">
                             {att.question.num1} {att.question.operatorSymbol} {att.question.num2} = {att.question.correctAnswer}
                           </div>
-                          <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2">
+                          <div className="text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                             <span>
                               {att.isCorrect ? (
-                                <strong className="text-emerald-600 font-normal">孩子作答：{att.userAnswer}</strong>
+                                <strong className="text-emerald-600 font-normal">{t('孩子作答：', 'Answered: ')}{att.userAnswer}</strong>
                               ) : att.isTimeout ? (
-                                <strong className="text-amber-700 font-normal">倒计时超时未提交</strong>
+                                <strong className="text-amber-700 font-normal">{t('倒计时超时未提交', 'Timed out')}</strong>
                               ) : (
-                                <strong className="text-rose-600 font-normal">错填为：{att.userAnswer} (正确答案 {att.question.correctAnswer})</strong>
+                                <strong className="text-rose-600 font-normal">{t('错填为：', 'Wrong: ')}{att.userAnswer} ({t('正确答案', 'answer')} {att.question.correctAnswer})</strong>
                               )}
                             </span>
                             {att.question.methodTip && (
@@ -756,22 +758,22 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                             ⏱️ {att.timeSpentSec}s
                           </div>
                           <div className="text-[10px] text-slate-400">
-                            {att.timeSpentSec <= 2 ? '⚡ 极速心算' : att.timeSpentSec <= 4 ? '稳健作答' : '稍有迟疑'}
+                            {att.timeSpentSec <= 2 ? t('⚡ 极速心算', '⚡ Super fast') : att.timeSpentSec <= 4 ? t('稳健作答', 'Steady') : t('稍有迟疑', 'Hesitant')}
                           </div>
                         </div>
 
                         <div>
                           {att.isCorrect ? (
                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">
-                              <CheckCircle2 className="w-3 h-3" /> 正确
+                              <CheckCircle2 className="w-3 h-3" /> {t('正确', 'Right')}
                             </span>
                           ) : att.isTimeout ? (
                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800">
-                              <Clock className="w-3 h-3" /> 超时
+                              <Clock className="w-3 h-3" /> {t('超时', 'Late')}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800">
-                              <XCircle className="w-3 h-3" /> 算错
+                              <XCircle className="w-3 h-3" /> {t('算错', 'Wrong')}
                             </span>
                           )}
                         </div>
@@ -795,7 +797,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     className="flex-1 sm:flex-none py-2 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
                   >
                     <Smartphone className="w-3.5 h-3.5" />
-                    <span>同步到家长手机</span>
+                    <span>{t('同步到家长手机', 'Sync to Phone')}</span>
                   </button>
                 )}
                 <button
@@ -809,7 +811,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     <Copy className="w-3.5 h-3.5" />
                   )}
                   <span>
-                    {copiedWeChatId === selectedSessionForDetail.id ? '已复制战报！' : '复制微信播报战报'}
+                    {copiedWeChatId === selectedSessionForDetail.id ? t('已复制战报！', 'Copied!') : t('复制微信播报战报', 'Copy WeChat Report')}
                   </span>
                 </button>
               </div>
@@ -819,7 +821,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 onClick={() => setSelectedSessionForDetail(null)}
                 className="w-full sm:w-auto py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition-colors"
               >
-                关闭
+                {t('关闭', 'Close')}
               </button>
             </div>
           </div>
@@ -830,14 +832,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       {isEditingSettings && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-slate-900 mb-1">家长设定学习目标与心愿奖励</h2>
+            <h2 className="text-lg font-bold text-slate-900 mb-1">{t('家长设定学习目标与心愿奖励', 'Set Goals & Wish Rewards')}</h2>
             <p className="text-xs text-slate-500 mb-4">
-              设置合理的每日目标与正向激励，激发孩子的数学口算自信心。
+              {t('设置合理的每日目标与正向激励，激发孩子的数学口算自信心。', 'Set realistic daily goals and positive rewards to build your child\'s math confidence.')}
             </p>
 
             <form onSubmit={handleSaveSettings} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-700 font-medium mb-1">孩子昵称</label>
+                <label className="block text-slate-700 font-medium mb-1">{t('孩子昵称', 'Nickname')}</label>
                 <input
                   type="text"
                   value={formName}
@@ -848,7 +850,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-medium mb-1">每日目标题量</label>
+                  <label className="block text-slate-700 font-medium mb-1">{t('每日目标题量', 'Daily Goal (Qs)')}</label>
                   <input
                     type="number"
                     min="5"
@@ -860,7 +862,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-medium mb-1">达标正确率要求 (%)</label>
+                  <label className="block text-slate-700 font-medium mb-1">{t('达标正确率要求 (%)', 'Target Accuracy (%)')}</label>
                   <input
                     type="number"
                     min="50"
@@ -873,10 +875,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-700 font-medium mb-1">心愿奖励名称</label>
+                <label className="block text-slate-700 font-medium mb-1">{t('心愿奖励名称', 'Wish Reward')}</label>
                 <input
                   type="text"
-                  placeholder="如：去游乐园 / 挑选一本新绘本"
+                  placeholder={t('如：去游乐园 / 挑选一本新绘本', 'e.g. Theme park / A new picture book')}
                   value={formRewardGoal}
                   onChange={e => setFormRewardGoal(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 text-xs"
@@ -884,7 +886,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-700 font-medium mb-1">兑换心愿所需小星星数</label>
+                <label className="block text-slate-700 font-medium mb-1">{t('兑换心愿所需小星星数', 'Stars Needed')}</label>
                 <input
                   type="number"
                   min="10"
@@ -901,13 +903,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   onClick={() => setIsEditingSettings(false)}
                   className="flex-1 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors font-medium"
                 >
-                  取消
+                  {t('取消', 'Cancel')}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-colors font-bold shadow-xs"
                 >
-                  保存设置
+                  {t('保存设置', 'Save')}
                 </button>
               </div>
             </form>
