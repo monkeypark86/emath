@@ -97,6 +97,19 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
   const [countdownAnim, setCountdownAnim] = useState<string | null>(null);
   const [hasTimedOutCurrentQ, setHasTimedOutCurrentQ] = useState<boolean>(false);
   const [currentModeTitle, setCurrentModeTitle] = useState<string>(() => t('每日练习', 'Daily Practice'));
+  const [isExitConfirmOpen, setIsExitConfirmOpen] = useState<boolean>(false);
+  const pauseStartRef = useRef<number>(0);
+
+  // 页面刷新或意外关闭防误触提示
+  useEffect(() => {
+    if (!isPlaying) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isPlaying]);
 
   useEffect(() => {
     if (studentPrefs?.equationLayout === 'auto' && questions[currentIndex]) {
@@ -215,9 +228,9 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
     }
   }, [initialQuestions]);
 
-  // 静默记录当前题目的用时并检测超时（若超过配置时限未完成，自动记入错题集/专项攻克）
+  // 静默记录当前题目的用时并检测超时（若超过配置时限未完成，自动记入错题集/专项攻克；打开退出确认时自动暂停计时）
   useEffect(() => {
-    if (!isPlaying || isAnswerRevealed) {
+    if (!isPlaying || isAnswerRevealed || isExitConfirmOpen) {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
@@ -239,7 +252,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isPlaying, isAnswerRevealed, currentIndex, countdownDuration, hasTimedOutCurrentQ, questions, student?.id, onMistakeRecorded]);
+  }, [isPlaying, isAnswerRevealed, isExitConfirmOpen, currentIndex, countdownDuration, hasTimedOutCurrentQ, questions, student?.id, onMistakeRecorded]);
 
   const setupAndStartSession = (newQuestions: MathQuestion[], sec: number, g: GradeLevel, ops: OperationType[]) => {
     setGrade(g);
@@ -349,8 +362,29 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
     setupAndStartSession(recommendedQuestions, prefs.perQuestionSeconds ?? 5, g, ops);
   };
 
-  // 退出练习，恢复全部菜单
-  const handleExitPractice = () => {
+  // 触发退出确认
+  const handleRequestExit = () => {
+    pauseStartRef.current = Date.now();
+    setIsExitConfirmOpen(true);
+  };
+
+  // 取消退出，继续练习（补偿暂停时间，确保不影响计时与节奏）
+  const handleCancelExit = () => {
+    if (pauseStartRef.current > 0) {
+      const pausedDuration = Date.now() - pauseStartRef.current;
+      startTimeRef.current += pausedDuration;
+      pauseStartRef.current = 0;
+    }
+    setIsExitConfirmOpen(false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
+  };
+
+  // 确认退出练习，恢复全部菜单
+  const handleConfirmExit = () => {
+    setIsExitConfirmOpen(false);
+    pauseStartRef.current = 0;
     setIsPlaying(false);
     onPlayStateChange?.(false);
     if (timerRef.current) clearInterval(timerRef.current);
@@ -505,6 +539,20 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isPlaying || isAnswerRevealed) return;
+      if (e.key === 'Escape') {
+        if (isExitConfirmOpen) {
+          handleCancelExit();
+        } else {
+          handleRequestExit();
+        }
+        return;
+      }
+      if (isExitConfirmOpen) {
+        if (e.key === 'Enter') {
+          handleCancelExit();
+        }
+        return;
+      }
       if (e.key >= '0' && e.key <= '9') {
         if (inputVal.length < 5) {
           const nextVal = inputVal + e.key;
@@ -525,7 +573,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, isAnswerRevealed, inputVal, currentIndex, questions, studentPrefs]);
+  }, [isPlaying, isAnswerRevealed, isExitConfirmOpen, inputVal, currentIndex, questions, studentPrefs]);
 
   const currentQ = questions[currentIndex];
   const unmasteredMistakeCount = getMistakes(student?.id).filter(m => !m.mastered).length;
@@ -541,6 +589,47 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
           <p className="text-slate-200 text-base sm:text-lg mt-6 font-bold tracking-widest">
             {countdownAnim === 'READY...' ? t('准备迎接口算挑战！', 'Get ready for the math challenge!') : countdownAnim === 'GO! 🚀' ? t('全速冲刺！', 'Full speed ahead!') : t('保持专注，算得又快又准', 'Stay focused — fast and accurate!')}
           </p>
+        </div>
+      )}
+
+      {/* 退出练习二次确认弹窗 (Exit Practice Confirmation Modal) */}
+      {isExitConfirmOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in zoom-in-95 duration-150">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner">
+              ⏸️
+            </div>
+
+            <h3 className="text-xl font-display font-extrabold text-slate-900">
+              {t('确定要退出练习吗？', 'Exit Practice?')}
+            </h3>
+
+            <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+              {t(
+                `当前已完成 ${currentIndex} / ${questions.length} 题${streak > 1 ? `，连击 ×${streak}` : ''}。退出后本轮练习进度将不会保存哦。`,
+                `You've completed ${currentIndex} of ${questions.length} questions${streak > 1 ? ` (streak ×${streak})` : ''}. Current progress will not be saved.`
+              )}
+            </p>
+
+            <div className="mt-6 space-y-2.5">
+              <button
+                type="button"
+                onClick={handleCancelExit}
+                className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold text-sm shadow-md shadow-amber-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Play className="w-4 h-4 fill-white" />
+                <span>{t('继续练习', 'Keep Practicing')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmExit}
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-semibold text-xs transition-colors cursor-pointer"
+              >
+                {t('确认退出', 'Yes, Exit Practice')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -788,11 +877,12 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
           {/* 轻量退出按钮 */}
           <button
             type="button"
-            onClick={handleExitPractice}
-            className="absolute top-4 right-4 text-xs font-medium text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors px-2.5 py-1 rounded-lg"
+            onClick={handleRequestExit}
+            className="absolute top-4 right-4 text-xs font-medium text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1"
             title={t('退出练习', 'Exit practice')}
           >
-            ✕ {t('退出', 'Exit')}
+            <span>✕</span>
+            <span>{t('退出', 'Exit')}</span>
           </button>
 
           {/* Central Question Arena */}
