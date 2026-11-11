@@ -125,49 +125,50 @@ export const DEFAULT_STUDENT_PREFERENCES: StudentPreferences = {
 
 export const DEFAULT_STUDENTS: StudentProfile[] = [
   {
-    id: 'student_tiantian',
-    name: '天天',
+    id: 'student_hanna',
+    name: 'Hanna',
+    avatar: '🐰',
+    grade: 'grade1',
+    dailyTargetCount: 15,
+    targetAccuracyRate: 90,
+    rewardGoalTitle: '挑选一本喜欢的科普绘本',
+    rewardGoalStarsNeeded: 40,
+    currentStars: 0,
+    preferences: {
+      ...DEFAULT_STUDENT_PREFERENCES,
+      equationLayout: 'vertical',
+      fontSizeScale: 'large', // 一年级护眼大字
+      selectedOps: ['add', 'subtract'],
+      questionCount: 15,
+      perQuestionSeconds: 5,
+      motto: '凑十破十法，每天进步一点点！',
+      themeColor: 'rose'
+    },
+    createdAt: Date.now(),
+    lastActiveAt: Date.now()
+  },
+  {
+    id: 'student_danna',
+    name: 'Danna',
     avatar: '🦁',
     grade: 'grade2',
     dailyTargetCount: 20,
     targetAccuracyRate: 90,
     rewardGoalTitle: '去游乐园玩旋转木马',
     rewardGoalStarsNeeded: 50,
-    currentStars: 18,
+    currentStars: 0,
     preferences: {
       ...DEFAULT_STUDENT_PREFERENCES,
       equationLayout: 'vertical',
+      fontSizeScale: 'normal',
       selectedOps: ['add', 'subtract', 'multiply', 'divide'],
-      questionCount: 30,
+      questionCount: 20,
       perQuestionSeconds: 5,
       motto: '乘除口诀记得牢，立式计算快又准！',
-      themeColor: 'amber'
-    },
-    createdAt: Date.now() - 86400000 * 7,
-    lastActiveAt: Date.now()
-  },
-  {
-    id: 'student_lele',
-    name: '乐乐',
-    avatar: '🐰',
-    grade: 'grade1',
-    dailyTargetCount: 15,
-    targetAccuracyRate: 85,
-    rewardGoalTitle: '买一套乐高积木',
-    rewardGoalStarsNeeded: 40,
-    currentStars: 24,
-    preferences: {
-      ...DEFAULT_STUDENT_PREFERENCES,
-      equationLayout: 'vertical',
-      fontSizeScale: 'large', // 一年级护眼大字
-      selectedOps: ['add', 'subtract'],
-      questionCount: 30,
-      perQuestionSeconds: 5,
-      motto: '凑十破十法，每天进步一点点！',
       themeColor: 'blue'
     },
-    createdAt: Date.now() - 86400000 * 5,
-    lastActiveAt: Date.now() - 86400000 * 1
+    createdAt: Date.now(),
+    lastActiveAt: Date.now()
   }
 ];
 
@@ -299,14 +300,14 @@ export function deleteStudentProfile(id: string): void {
 }
 
 export const DEFAULT_PARENT_SETTINGS: ParentSettings = {
-  dailyTargetCount: 20,
+  dailyTargetCount: 15,
   targetAccuracyRate: 90,
   perQuestionSeconds: 5,
-  studentName: '天天',
-  grade: 'grade2',
-  rewardGoalTitle: '去游乐园玩旋转木马',
-  rewardGoalStarsNeeded: 50,
-  currentStars: 18,
+  studentName: 'Hanna',
+  grade: 'grade1',
+  rewardGoalTitle: '挑选一本喜欢的科普绘本',
+  rewardGoalStarsNeeded: 40,
+  currentStars: 0,
   soundEnabled: true,
 };
 
@@ -382,12 +383,6 @@ export function getMistakes(studentId?: string): MistakeItem[] {
     if (raw) {
       return JSON.parse(raw);
     }
-    // 兼容历史老数据（天天）
-    const activeId = studentId || getActiveStudentId();
-    if (activeId === 'student_tiantian') {
-      const legacy = localStorage.getItem(MISTAKES_KEY);
-      if (legacy) return JSON.parse(legacy);
-    }
   } catch {}
   return [];
 }
@@ -396,10 +391,6 @@ export function saveMistakes(mistakes: MistakeItem[], studentId?: string): void 
   try {
     const key = getMistakesKey(studentId);
     localStorage.setItem(key, JSON.stringify(mistakes));
-    const activeId = studentId || getActiveStudentId();
-    if (activeId === 'student_tiantian') {
-      localStorage.setItem(MISTAKES_KEY, JSON.stringify(mistakes));
-    }
   } catch (e) {
     console.error('Failed to save mistakes', e);
   }
@@ -483,11 +474,6 @@ export function getPracticeSessions(studentId?: string): PracticeSessionResult[]
     if (raw) {
       return JSON.parse(raw);
     }
-    const activeId = studentId || getActiveStudentId();
-    if (activeId === 'student_tiantian') {
-      const legacy = localStorage.getItem(SESSIONS_KEY);
-      if (legacy) return JSON.parse(legacy);
-    }
   } catch {}
   return [];
 }
@@ -501,7 +487,7 @@ export function savePracticeSession(session: PracticeSessionResult, studentId?: 
     const enrichedSession: PracticeSessionResult = {
       ...session,
       studentId: targetId,
-      studentName: session.studentName || student?.name || '天天'
+      studentName: session.studentName || student?.name || 'Hanna'
     };
 
     const sessions = getPracticeSessions(targetId);
@@ -514,9 +500,6 @@ export function savePracticeSession(session: PracticeSessionResult, studentId?: 
     if (sessions.length > 100) sessions.length = 100;
     const key = getSessionsKey(targetId);
     localStorage.setItem(key, JSON.stringify(sessions));
-    if (targetId === 'student_tiantian') {
-      localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
-    }
   } catch (e) {
     console.error('Failed to save session', e);
   }
@@ -682,254 +665,48 @@ export function getDailyActivityStats(sessions: PracticeSessionResult[], daysCou
 }
 
 // Generate sample initial data so parents and teachers can see rich dashboard immediately if empty
-// Generate sample initial data so parents and teachers can see rich dashboard immediately if empty
+// 初始化与清理数据：保证学生档案为 Hanna 与 Danna，清空历史模拟数据
 export function seedSampleDataIfEmpty() {
-  // Ensure default student profiles exist
-  if (!localStorage.getItem(PROFILES_KEY)) {
-    saveStudentProfiles(DEFAULT_STUDENTS);
-  }
-
-  // Seed for 天天 (student_tiantian)
-  const tiantianSessions = getPracticeSessions('student_tiantian');
-  if (tiantianSessions.length === 0) {
-    const tiantianMistakes: MistakeItem[] = [
-      {
-        id: 'm1',
-        question: {
-          id: 'q_demo1',
-          num1: 8,
-          num2: 7,
-          operator: 'multiply',
-          operatorSymbol: '×',
-          correctAnswer: 56,
-          explanation: '【口诀记心间】乘法口诀：“七八五十六”，因此 8 × 7 = 56。',
-          methodTip: '九九乘法口诀',
-          difficultyGrade: '二年级(100以内&九九乘除)'
-        },
-        wrongAnswer: 54,
-        isTimeout: false,
-        timeSpentSec: 4.8,
-        wrongCount: 2,
-        mastered: false,
-        firstFailedAt: Date.now() - 86400000 * 2,
-        lastPracticedAt: Date.now() - 86400000,
-        historyAttempts: [{ date: Date.now() - 86400000, answer: 54, isCorrect: false }]
-      },
-      {
-        id: 'm2',
-        question: {
-          id: 'q_demo2',
-          num1: 15,
-          num2: 8,
-          operator: 'subtract',
-          operatorSymbol: '-',
-          correctAnswer: 7,
-          explanation: '【破十法】把 15 分成 10 和 5，先算 10 - 8 = 2，再算 2 + 5 = 7。',
-          methodTip: '破十法巧算',
-          difficultyGrade: '一年级(20以内)'
-        },
-        wrongAnswer: null,
-        isTimeout: true,
-        timeSpentSec: 5.0,
-        wrongCount: 1,
-        mastered: false,
-        firstFailedAt: Date.now() - 86400000,
-        lastPracticedAt: Date.now() - 86400000,
-        historyAttempts: [{ date: Date.now() - 86400000, answer: null, isCorrect: false }]
-      },
-      {
-        id: 'm3',
-        question: {
-          id: 'q_demo3',
-          num1: 54,
-          num2: 6,
-          operator: 'divide',
-          operatorSymbol: '÷',
-          correctAnswer: 9,
-          explanation: '【想乘算除】想乘法口诀：“六九五十四”，所以 54 ÷ 6 = 9。',
-          methodTip: '表内除法逆向思维',
-          difficultyGrade: '二年级(100以内&九九乘除)'
-        },
-        wrongAnswer: 8,
-        isTimeout: false,
-        timeSpentSec: 4.5,
-        wrongCount: 1,
-        mastered: true,
-        firstFailedAt: Date.now() - 86400000 * 3,
-        lastPracticedAt: Date.now() - 3600000,
-        historyAttempts: [{ date: Date.now() - 3600000, answer: 9, isCorrect: true }]
-      }
-    ];
-
-    saveMistakes(tiantianMistakes, 'student_tiantian');
-
-    const sampleSessions: PracticeSessionResult[] = [];
-    const today = new Date();
-    for (let i = 4; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(today.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      const total = 10;
-      const correct = 8 + (i % 3 === 0 ? 2 : (i % 2 === 0 ? 1 : 0));
-      const wrong = total - correct;
-      const ts = d.getTime();
-      const attempts = generateSampleAttempts(ts, total, correct, 'grade2');
-      const avgSec = Number((attempts.reduce((sum, a) => sum + a.timeSpentSec, 0) / total).toFixed(1));
-
-      sampleSessions.push({
-        id: 'sess_tt_' + i,
-        studentId: 'student_tiantian',
-        studentName: '天天',
-        challengeMode: i === 0 ? '每日挑战 (3s极速)' : i === 2 ? '错题专练' : '每日练习',
-        timestamp: ts,
-        dateStr,
-        totalQuestions: total,
-        correctCount: correct,
-        wrongCount: wrong,
-        timeoutCount: wrong > 0 ? 1 : 0,
-        accuracyRate: Math.round((correct / total) * 100),
-        averageTimeSec: avgSec,
-        attempts,
-        gradeLevel: 'grade2',
-        operations: ['add', 'subtract', 'multiply', 'divide'],
-        score: correct * 10,
-        starsEarned: Math.max(1, correct - 5)
+  const MIGRATION_VERSION_KEY = 'math_migration_clean_hanna_danna_v3';
+  try {
+    if (!localStorage.getItem(MIGRATION_VERSION_KEY)) {
+      // 清空所有历史旧 mock 数据与旧学生
+      const keysToPurge = [
+        'math_mistakes_v1',
+        'math_sessions_v1',
+        'math_mistakes_student_tiantian',
+        'math_sessions_student_tiantian',
+        'math_mistakes_student_lele',
+        'math_sessions_student_lele',
+        'math_mistakes_student_hanna',
+        'math_sessions_student_hanna',
+        'math_mistakes_student_danna',
+        'math_sessions_student_danna',
+        'math_custom_banks_v1',
+        'math_manual_questions_v1',
+        'math_parent_settings_v1'
+      ];
+      keysToPurge.forEach(k => {
+        try {
+          localStorage.removeItem(k);
+        } catch {}
       });
+
+      // 重置学生档案为 Hanna (一年级) 与 Danna (二年级)
+      saveStudentProfiles(DEFAULT_STUDENTS);
+      setActiveStudentId('student_hanna');
+      localStorage.setItem('math_chosen_student_confirmed_v1', 'true');
+      localStorage.setItem(MIGRATION_VERSION_KEY, 'true');
+      return;
     }
-    localStorage.setItem('math_sessions_student_tiantian', JSON.stringify(sampleSessions));
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sampleSessions));
-  }
 
-  // Seed for 乐乐 (student_lele)
-  const leleSessions = getPracticeSessions('student_lele');
-  if (leleSessions.length === 0) {
-    const leleMistakes: MistakeItem[] = [
-      {
-        id: 'm_lele_1',
-        question: {
-          id: 'q_lele1',
-          num1: 8,
-          num2: 5,
-          operator: 'add',
-          operatorSymbol: '+',
-          correctAnswer: 13,
-          explanation: '【凑十法】把 5 分成 2 和 3，先算 8 + 2 = 10，再算 10 + 3 = 13。',
-          methodTip: '凑十法',
-          difficultyGrade: '一年级(20以内)'
-        },
-        wrongAnswer: 12,
-        isTimeout: false,
-        timeSpentSec: 3.8,
-        wrongCount: 1,
-        mastered: false,
-        firstFailedAt: Date.now() - 86400000,
-        lastPracticedAt: Date.now() - 86400000,
-        historyAttempts: [{ date: Date.now() - 86400000, answer: 12, isCorrect: false }]
-      },
-      {
-        id: 'm_lele_2',
-        question: {
-          id: 'q_lele2',
-          num1: 13,
-          num2: 7,
-          operator: 'subtract',
-          operatorSymbol: '-',
-          correctAnswer: 6,
-          explanation: '【破十法】把 13 分成 10 和 3，先算 10 - 7 = 3，再算 3 + 3 = 6。',
-          methodTip: '破十法',
-          difficultyGrade: '一年级(20以内)'
-        },
-        wrongAnswer: 7,
-        isTimeout: false,
-        timeSpentSec: 4.2,
-        wrongCount: 2,
-        mastered: false,
-        firstFailedAt: Date.now() - 86400000 * 2,
-        lastPracticedAt: Date.now() - 86400000,
-        historyAttempts: [{ date: Date.now() - 86400000, answer: 7, isCorrect: false }]
-      }
-    ];
-
-    saveMistakes(leleMistakes, 'student_lele');
-
-    const sampleSessionsLele: PracticeSessionResult[] = [];
-    const today = new Date();
-    for (let i = 3; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(today.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      const total = 10;
-      const correct = 9;
-      const ts = d.getTime();
-      const attempts = generateSampleAttempts(ts, total, correct, 'grade1');
-      const avgSec = Number((attempts.reduce((sum, a) => sum + a.timeSpentSec, 0) / total).toFixed(1));
-
-      sampleSessionsLele.push({
-        id: 'sess_lele_' + i,
-        studentId: 'student_lele',
-        studentName: '乐乐',
-        challengeMode: '每日练习',
-        timestamp: ts,
-        dateStr,
-        totalQuestions: total,
-        correctCount: correct,
-        wrongCount: 1,
-        timeoutCount: 0,
-        accuracyRate: 90,
-        averageTimeSec: avgSec,
-        attempts,
-        gradeLevel: 'grade1',
-        operations: ['add', 'subtract'],
-        score: 90,
-        starsEarned: 4
-      });
+    if (!localStorage.getItem(PROFILES_KEY)) {
+      saveStudentProfiles(DEFAULT_STUDENTS);
+      setActiveStudentId('student_hanna');
     }
-    localStorage.setItem('math_sessions_student_lele', JSON.stringify(sampleSessionsLele));
+  } catch (e) {
+    console.error('Failed to initialize clean data', e);
   }
-}
-
-function generateSampleAttempts(dateTs: number, total: number, correctCount: number, grade: GradeLevel): any[] {
-  const sampleBank = [
-    { n1: 8, n2: 7, op: 'multiply', sym: '×', ans: 56, tip: '九九乘法口诀', exp: '乘法口诀：“七八五十六”，因此 8 × 7 = 56。' },
-    { n1: 15, n2: 8, op: 'subtract', sym: '-', ans: 7, tip: '破十法巧算', exp: '把 15 分成 10 和 5，10 - 8 = 2，2 + 5 = 7。' },
-    { n1: 54, n2: 6, op: 'divide', sym: '÷', ans: 9, tip: '想乘算除', exp: '想：“六九五十四”，所以 54 ÷ 6 = 9。' },
-    { n1: 27, n2: 15, op: 'add', sym: '+', ans: 42, tip: '进位加法', exp: '个位 7 + 5 = 12 满十进一，十位 2 + 1 + 1 = 4。' },
-    { n1: 9, n2: 9, op: 'multiply', sym: '×', ans: 81, tip: '乘法口诀', exp: '口诀“九九八十一”。' },
-    { n1: 36, n2: 4, op: 'divide', sym: '÷', ans: 9, tip: '表内除法', exp: '想“四九三十六”，所以 36 ÷ 4 = 9。' },
-    { n1: 18, n2: 9, op: 'subtract', sym: '-', ans: 9, tip: '破十法', exp: '10 - 9 = 1，1 + 8 = 9。' },
-    { n1: 7, n2: 6, op: 'multiply', sym: '×', ans: 42, tip: '乘法口诀', exp: '口诀“六七四十二”。' },
-    { n1: 25, n2: 8, op: 'add', sym: '+', ans: 33, tip: '凑十进位', exp: '5 + 8 = 13，20 + 13 = 33。' },
-    { n1: 63, n2: 7, op: 'divide', sym: '÷', ans: 9, tip: '想乘算除', exp: '想“七九六十三”，63 ÷ 7 = 9。' }
-  ];
-
-  const attempts: any[] = [];
-  for (let idx = 0; idx < total; idx++) {
-    const item = sampleBank[idx % sampleBank.length];
-    const isCorrect = idx < correctCount;
-    const isTimeout = !isCorrect && idx === total - 1;
-    const timeSpentSec = Number((isCorrect ? (1.5 + (idx * 0.3) % 2.1) : (isTimeout ? 5.0 : 4.4)).toFixed(1));
-    const userAnswer = isCorrect ? item.ans : (isTimeout ? null : item.ans + (idx % 2 === 0 ? 2 : -2));
-
-    attempts.push({
-      question: {
-        id: `q_sample_${idx}_${dateTs}`,
-        num1: item.n1,
-        num2: item.n2,
-        operator: item.op,
-        operatorSymbol: item.sym,
-        correctAnswer: item.ans,
-        explanation: item.exp,
-        methodTip: item.tip,
-        difficultyGrade: grade === 'grade1' ? '一年级(20以内)' : '二年级(100以内&九九乘除)'
-      },
-      userAnswer,
-      isCorrect,
-      timeSpentSec,
-      isTimeout,
-      timestamp: dateTs + idx * 4500
-    });
-  }
-  return attempts;
 }
 
 // Generate formatted WeChat report text for parents to share/copy to mobile chats

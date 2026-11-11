@@ -345,7 +345,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="如：天天、乐乐、阳阳"
+                  placeholder="如：Hanna、Danna、阳阳"
                   value={nameInput}
                   onChange={e => setNameInput(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500 text-sm font-medium"
