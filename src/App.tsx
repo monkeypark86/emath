@@ -183,69 +183,22 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800">
-      {/* 极简顶部菜单栏：仅保留学生头像跟设置 */}
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 pb-16 lg:pb-0">
+      {/* 重新规划整理的主导航菜单栏 (含桌面端导航 + 移动端底部菜单) */}
       {!isPracticingActive && (
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-            {/* 左侧：品牌Logo (点击返回口算训练首页) */}
-            <div
-              onClick={() => {
-                setPracticeQuestions(undefined);
-                setCurrentTab('practice');
-              }}
-              className="flex items-center gap-2.5 cursor-pointer group"
-            >
-              <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-display font-bold text-lg shadow-sm group-hover:scale-105 transition-transform">
-                象
-              </div>
-              <div className="flex flex-col">
-                <span className="font-display font-bold text-base tracking-tight text-slate-900 leading-tight">
-                  小象速算
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium leading-none">
-                  小学生口算思维训练
-                </span>
-              </div>
-            </div>
-
-            {/* 右侧：学生头像档案 + 学生个人设置（极简设计，无重复设置，无冗余导航） */}
-            <div className="flex items-center gap-2.5 shrink-0">
-              {/* Student Profile Quick Switcher */}
-              <button
-                type="button"
-                onClick={() => setIsProfileModalOpen(true)}
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-950 transition-all shadow-2xs hover:shadow-xs group cursor-pointer"
-                title="点击切换正在练习的学生档案"
-              >
-                <span className="text-2xl group-hover:scale-110 transition-transform leading-none">{activeStudent.avatar}</span>
-                <div className="flex flex-col text-left">
-                  <div className="flex items-center gap-1.5 leading-tight">
-                    <span className="font-bold text-xs text-slate-900">{activeStudent.name}</span>
-                    <span className="text-[10px] text-amber-700 bg-amber-200/80 px-1.5 py-0.5 rounded font-medium">
-                      {formatGradeLabel(activeStudent.grade)}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-amber-600 font-semibold leading-tight flex items-center gap-0.5 mt-0.5">
-                    <span>⭐ {activeStudent.currentStars} 颗星</span>
-                    <span className="text-amber-500">▾ 切换</span>
-                  </span>
-                </div>
-              </button>
-
-              {/* Student Personal Settings Quick Button */}
-              <button
-                type="button"
-                onClick={() => handleOpenStudentSettings(activeStudent)}
-                className="p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
-                title="打开学生个人设置 (算式立式、节奏、护眼字号、心愿奖励)"
-              >
-                <Settings className="w-4 h-4 text-slate-700" />
-                <span className="hidden sm:inline text-xs font-semibold text-slate-700">设置</span>
-              </button>
-            </div>
-          </div>
-        </header>
+        <Navbar
+          currentTab={currentTab}
+          onSelectTab={tab => {
+            setPracticeQuestions(undefined);
+            setCurrentTab(tab);
+          }}
+          activeStudent={activeStudent}
+          mistakeCount={mistakeCount}
+          onOpenProfileModal={() => setIsProfileModalOpen(true)}
+          onOpenStudentSettings={() => handleOpenStudentSettings(activeStudent)}
+          isMuted={isMuted}
+          onToggleMute={handleToggleMute}
+        />
       )}
 
       {/* Floating Auto-Push Notification Toast */}
