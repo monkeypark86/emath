@@ -16,6 +16,8 @@ import {
   formatGradeLabel,
   formatGradeDetail
 } from '../utils/storage';
+import { generateQuestionBatch } from '../utils/mathGenerator';
+import { sound } from '../utils/soundEffects';
 import {
   Play,
   RotateCcw,
