@@ -13,7 +13,9 @@ import {
   getPracticeSessions,
   savePracticeSession,
   importSyncPayload,
-  addStars
+  addStars,
+  generateWeChatReport,
+  getActiveStudent
 } from '../utils/storage';
 import { sound } from '../utils/soundEffects';
 import {
@@ -32,7 +34,12 @@ import {
   X,
   RefreshCw,
   Award,
-  Layers
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Eye,
+  XCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -60,12 +67,25 @@ export const MobileCompanion: React.FC<MobileCompanionProps> = ({ onBackToMain }
   const [practiceRevealed, setPracticeRevealed] = useState<boolean>(false);
   const [practiceFeedback, setPracticeFeedback] = useState<'correct' | 'wrong' | null>(null);
 
-  const settings = getParentSettings();
-  const sessions = getPracticeSessions();
+  const [settings, setSettings] = useState(getParentSettings());
+  const [sessions, setSessions] = useState<PracticeSessionResult[]>([]);
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+  const [copiedWeChatId, setCopiedWeChatId] = useState<string | null>(null);
+  const activeStudent = getActiveStudent();
 
   const loadData = () => {
     const list = getMistakes();
     setMistakes(list);
+    setSessions(getPracticeSessions());
+    setSettings(getParentSettings());
+  };
+
+  const handleCopyMobileSessionReport = (s: PracticeSessionResult) => {
+    const text = generateWeChatReport(s, s.studentName || settings.studentName);
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedWeChatId(s.id);
+      setTimeout(() => setCopiedWeChatId(null), 2500);
+    });
   };
 
   useEffect(() => {
@@ -565,39 +585,175 @@ export const MobileCompanion: React.FC<MobileCompanionProps> = ({ onBackToMain }
 
           {/* Tab 3: Parent Mobile Sync & Review */}
           {mobileTab === 'parent_sync' && (
-            <div className="p-4 flex-1 flex flex-col justify-between overflow-y-auto">
-              <div className="space-y-4">
+            <div className="p-3.5 flex-1 flex flex-col justify-between overflow-y-auto space-y-4">
+              <div className="space-y-3.5">
                 {/* Child Status Summary */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+                <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
                   <div className="flex items-center justify-between text-xs mb-2">
-                    <span className="font-bold text-slate-900">{settings.studentName} 今日学情</span>
-                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-semibold">
-                      已同步推送
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                      <span>{activeStudent.avatar}</span>
+                      <span>{settings.studentName} 今日学情看板</span>
+                    </div>
+                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-semibold border border-emerald-100">
+                      手机端已同步
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 text-center text-xs pt-1 border-t border-slate-100">
-                    <div>
-                      <div className="text-slate-400 text-[10px]">待练错题</div>
-                      <div className="font-mono font-bold text-rose-600 text-base">{activeMistakes.length}</div>
+                  <div className="grid grid-cols-4 gap-1.5 text-center text-xs pt-2 border-t border-slate-100">
+                    <div className="bg-slate-50 rounded-xl p-1.5">
+                      <div className="text-slate-400 text-[10px]">挑战轮次</div>
+                      <div className="font-mono font-bold text-slate-800 text-sm">{sessions.length} 轮</div>
                     </div>
-                    <div>
+                    <div className="bg-slate-50 rounded-xl p-1.5">
+                      <div className="text-slate-400 text-[10px]">待练错题</div>
+                      <div className="font-mono font-bold text-rose-600 text-sm">{activeMistakes.length}</div>
+                    </div>
+                    <div className="bg-slate-50 rounded-xl p-1.5">
                       <div className="text-slate-400 text-[10px]">已攻克题</div>
-                      <div className="font-mono font-bold text-emerald-600 text-base">
+                      <div className="font-mono font-bold text-emerald-600 text-sm">
                         {mistakes.filter(m => m.mastered).length}
                       </div>
                     </div>
-                    <div>
+                    <div className="bg-slate-50 rounded-xl p-1.5">
                       <div className="text-slate-400 text-[10px]">小星星</div>
-                      <div className="font-mono font-bold text-amber-600 text-base">{settings.currentStars} ⭐</div>
+                      <div className="font-mono font-bold text-amber-600 text-sm">{settings.currentStars} ⭐</div>
                     </div>
                   </div>
                 </div>
 
+                {/* Challenge History & Question-by-Question Details */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
+                      <span>📊 历次挑战记录</span>
+                      <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded font-normal">
+                        含每题准确率与耗时
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">共 {sessions.length} 轮</span>
+                  </div>
+
+                  {sessions.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl">
+                      暂无挑战记录，请在电脑端或扫码同步挑战数据
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5 max-h-72 overflow-y-auto pr-0.5">
+                      {sessions.slice(0, 8).map(s => {
+                        const isExpanded = expandedSessionId === s.id;
+                        return (
+                          <div
+                            key={s.id}
+                            className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50 transition-all text-xs"
+                          >
+                            {/* Session Header Card */}
+                            <div
+                              onClick={() => setExpandedSessionId(isExpanded ? null : s.id)}
+                              className="p-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-100/60 transition-colors"
+                            >
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] font-semibold bg-white border border-slate-200 px-1.5 py-0.2 rounded text-slate-700">
+                                    {s.challengeMode || '每日练习'}
+                                  </span>
+                                  <span className="text-[11px] text-slate-500 font-mono">
+                                    {new Date(s.timestamp).toLocaleDateString([], { month: 'numeric', day: 'numeric' })}{' '}
+                                    {new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-1 text-[11px]">
+                                  <span className={`font-mono font-bold ${s.accuracyRate >= 90 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                    正确率 {s.accuracyRate}%
+                                  </span>
+                                  <span className="text-slate-400">·</span>
+                                  <span className="text-slate-600 font-mono">均速 {s.averageTimeSec}s</span>
+                                  <span className="text-slate-400">·</span>
+                                  <span className="text-amber-600 font-mono">+{s.starsEarned}⭐</span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1 text-[11px] text-amber-700 font-medium">
+                                <span>{isExpanded ? '收起' : '每题明细'}</span>
+                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                              </div>
+                            </div>
+
+                            {/* Expanded Question Attempts */}
+                            {isExpanded && (
+                              <div className="p-2.5 bg-white border-t border-slate-100 space-y-1.5">
+                                <div className="text-[10px] font-semibold text-slate-500 flex items-center justify-between pb-1">
+                                  <span>每道题答题详情 ({s.attempts.length} 题)</span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCopyMobileSessionReport(s);
+                                    }}
+                                    className="text-[10px] text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-0.5 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200"
+                                  >
+                                    {copiedWeChatId === s.id ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                    <span>{copiedWeChatId === s.id ? '已复制' : '复制微信播报'}</span>
+                                  </button>
+                                </div>
+
+                                {s.attempts.length === 0 ? (
+                                  <div className="text-center py-3 text-slate-400 text-[11px]">
+                                    暂无单题流水记录
+                                  </div>
+                                ) : (
+                                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                                    {s.attempts.map((att, aIdx) => (
+                                      <div
+                                        key={aIdx}
+                                        className={`p-1.5 rounded-lg border text-[11px] flex items-center justify-between ${
+                                          att.isCorrect
+                                            ? 'bg-slate-50/70 border-slate-100'
+                                            : att.isTimeout
+                                            ? 'bg-amber-50/70 border-amber-200'
+                                            : 'bg-rose-50/70 border-rose-200'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="font-mono text-slate-400 text-[10px]">#{aIdx + 1}</span>
+                                          <span className="font-mono font-bold text-slate-900">
+                                            {att.question.num1} {att.question.operatorSymbol} {att.question.num2} = {att.question.correctAnswer}
+                                          </span>
+                                          <span className="text-[10px]">
+                                            {att.isCorrect ? (
+                                              <span className="text-emerald-600">({att.userAnswer} ✅)</span>
+                                            ) : att.isTimeout ? (
+                                              <span className="text-amber-700">(超时 ⏰)</span>
+                                            ) : (
+                                              <span className="text-rose-600">(填 {att.userAnswer} ❌)</span>
+                                            )}
+                                          </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-1 font-mono text-[10px] text-slate-600">
+                                          <span>⏱️ {att.timeSpentSec}s</span>
+                                          {att.isCorrect ? (
+                                            <span className="text-emerald-600 font-bold">对</span>
+                                          ) : (
+                                            <span className="text-rose-600 font-bold">错</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
                 {/* Pairing Code Input */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
-                  <div className="text-xs font-bold text-slate-900 mb-1">跨设备口令同步</div>
-                  <p className="text-[11px] text-slate-400 mb-3">输入电脑端生成的6位同步配对码，即可手动拉取最新错题：</p>
+                <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
+                  <div className="text-xs font-bold text-slate-900 mb-1">手动同步配对口令</div>
+                  <p className="text-[11px] text-slate-400 mb-2.5">输入电脑端生成的6位同步配对码，拉取最新挑战成绩：</p>
                   <form onSubmit={handlePairingCodeSubmit} className="flex gap-2">
                     <input
                       type="text"
@@ -611,7 +767,7 @@ export const MobileCompanion: React.FC<MobileCompanionProps> = ({ onBackToMain }
                       type="submit"
                       className="flex-1 py-1.5 px-3 bg-slate-900 text-white font-semibold rounded-xl text-xs"
                     >
-                      拉取同步
+                      拉取同步数据
                     </button>
                   </form>
                   {syncMessage && (
@@ -622,33 +778,38 @@ export const MobileCompanion: React.FC<MobileCompanionProps> = ({ onBackToMain }
                 </div>
 
                 {/* Latest Pushed Mistakes list */}
-                <div>
-                  <div className="text-xs font-semibold text-slate-700 mb-2">最新推送到手机的错题</div>
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                    {activeMistakes.slice(0, 5).map((m, idx) => (
-                      <div
-                        key={m.id}
-                        className="bg-white border border-slate-100 rounded-xl p-2.5 text-xs flex items-center justify-between"
-                      >
-                        <span className="font-mono font-bold text-slate-900">
-                          {m.question.num1} {m.question.operatorSymbol} {m.question.num2} = {m.question.correctAnswer}
-                        </span>
-                        <span className="text-[10px] text-rose-500 font-medium">
-                          {m.isTimeout ? '5秒超时' : `错填了 ${m.wrongAnswer}`}
-                        </span>
-                      </div>
-                    ))}
+                {activeMistakes.length > 0 && (
+                  <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs">
+                    <div className="text-xs font-semibold text-slate-700 mb-2 flex items-center justify-between">
+                      <span>待攻克错题集</span>
+                      <span className="text-[10px] text-rose-600 font-mono font-bold">{activeMistakes.length} 道</span>
+                    </div>
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                      {activeMistakes.slice(0, 5).map((m) => (
+                        <div
+                          key={m.id}
+                          className="bg-slate-50 border border-slate-100 rounded-xl p-2 text-xs flex items-center justify-between"
+                        >
+                          <span className="font-mono font-bold text-slate-900">
+                            {m.question.num1} {m.question.operatorSymbol} {m.question.num2} = {m.question.correctAnswer}
+                          </span>
+                          <span className="text-[10px] text-rose-500 font-medium">
+                            {m.isTimeout ? '5秒超时' : `错填了 ${m.wrongAnswer}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
-              <div className="pt-3">
+              <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => setMobileTab('flashcard')}
-                  className="w-full py-2.5 rounded-xl bg-amber-500 text-white font-bold text-xs"
+                  className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition-colors shadow-xs"
                 >
-                  去给孩子递手机做闪卡练习
+                  去给孩子递手机做闪卡练习 🚀
                 </button>
               </div>
             </div>

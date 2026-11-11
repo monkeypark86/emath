@@ -467,9 +467,23 @@ export function getPracticeSessions(studentId?: string): PracticeSessionResult[]
 
 export function savePracticeSession(session: PracticeSessionResult, studentId?: string): void {
   try {
-    const targetId = studentId || getActiveStudentId();
+    const targetId = studentId || session.studentId || getActiveStudentId();
+    const profiles = getStudentProfiles();
+    const student = profiles.find(p => p.id === targetId);
+
+    const enrichedSession: PracticeSessionResult = {
+      ...session,
+      studentId: targetId,
+      studentName: session.studentName || student?.name || '天天'
+    };
+
     const sessions = getPracticeSessions(targetId);
-    sessions.unshift(session);
+    const existingIndex = sessions.findIndex(s => s.id === enrichedSession.id);
+    if (existingIndex >= 0) {
+      sessions[existingIndex] = enrichedSession;
+    } else {
+      sessions.unshift(enrichedSession);
+    }
     if (sessions.length > 100) sessions.length = 100;
     const key = getSessionsKey(targetId);
     localStorage.setItem(key, JSON.stringify(sessions));
@@ -731,17 +745,24 @@ export function seedSampleDataIfEmpty() {
       const total = 10;
       const correct = 8 + (i % 3 === 0 ? 2 : (i % 2 === 0 ? 1 : 0));
       const wrong = total - correct;
+      const ts = d.getTime();
+      const attempts = generateSampleAttempts(ts, total, correct, 'grade2');
+      const avgSec = Number((attempts.reduce((sum, a) => sum + a.timeSpentSec, 0) / total).toFixed(1));
+
       sampleSessions.push({
         id: 'sess_tt_' + i,
-        timestamp: d.getTime(),
+        studentId: 'student_tiantian',
+        studentName: '天天',
+        challengeMode: i === 0 ? '每日挑战 (3s极速)' : i === 2 ? '错题专练' : '每日练习',
+        timestamp: ts,
         dateStr,
         totalQuestions: total,
         correctCount: correct,
         wrongCount: wrong,
         timeoutCount: wrong > 0 ? 1 : 0,
         accuracyRate: Math.round((correct / total) * 100),
-        averageTimeSec: Number((3.6 - i * 0.25).toFixed(1)),
-        attempts: [],
+        averageTimeSec: avgSec,
+        attempts,
         gradeLevel: 'grade2',
         operations: ['add', 'subtract', 'multiply', 'divide'],
         score: correct * 10,
@@ -812,17 +833,24 @@ export function seedSampleDataIfEmpty() {
       const dateStr = d.toISOString().split('T')[0];
       const total = 10;
       const correct = 9;
+      const ts = d.getTime();
+      const attempts = generateSampleAttempts(ts, total, correct, 'grade1');
+      const avgSec = Number((attempts.reduce((sum, a) => sum + a.timeSpentSec, 0) / total).toFixed(1));
+
       sampleSessionsLele.push({
         id: 'sess_lele_' + i,
-        timestamp: d.getTime(),
+        studentId: 'student_lele',
+        studentName: '乐乐',
+        challengeMode: '每日练习',
+        timestamp: ts,
         dateStr,
         totalQuestions: total,
         correctCount: correct,
         wrongCount: 1,
         timeoutCount: 0,
         accuracyRate: 90,
-        averageTimeSec: 2.9,
-        attempts: [],
+        averageTimeSec: avgSec,
+        attempts,
         gradeLevel: 'grade1',
         operations: ['add', 'subtract'],
         score: 90,
@@ -833,17 +861,127 @@ export function seedSampleDataIfEmpty() {
   }
 }
 
-// Mobile Sync Payload encoding & decoding
-export function createSyncPayload(): string {
-  const mistakes = getMistakes();
-  const settings = getParentSettings();
+function generateSampleAttempts(dateTs: number, total: number, correctCount: number, grade: GradeLevel): any[] {
+  const sampleBank = [
+    { n1: 8, n2: 7, op: 'multiply', sym: '×', ans: 56, tip: '九九乘法口诀', exp: '乘法口诀：“七八五十六”，因此 8 × 7 = 56。' },
+    { n1: 15, n2: 8, op: 'subtract', sym: '-', ans: 7, tip: '破十法巧算', exp: '把 15 分成 10 和 5，10 - 8 = 2，2 + 5 = 7。' },
+    { n1: 54, n2: 6, op: 'divide', sym: '÷', ans: 9, tip: '想乘算除', exp: '想：“六九五十四”，所以 54 ÷ 6 = 9。' },
+    { n1: 27, n2: 15, op: 'add', sym: '+', ans: 42, tip: '进位加法', exp: '个位 7 + 5 = 12 满十进一，十位 2 + 1 + 1 = 4。' },
+    { n1: 9, n2: 9, op: 'multiply', sym: '×', ans: 81, tip: '乘法口诀', exp: '口诀“九九八十一”。' },
+    { n1: 36, n2: 4, op: 'divide', sym: '÷', ans: 9, tip: '表内除法', exp: '想“四九三十六”，所以 36 ÷ 4 = 9。' },
+    { n1: 18, n2: 9, op: 'subtract', sym: '-', ans: 9, tip: '破十法', exp: '10 - 9 = 1，1 + 8 = 9。' },
+    { n1: 7, n2: 6, op: 'multiply', sym: '×', ans: 42, tip: '乘法口诀', exp: '口诀“六七四十二”。' },
+    { n1: 25, n2: 8, op: 'add', sym: '+', ans: 33, tip: '凑十进位', exp: '5 + 8 = 13，20 + 13 = 33。' },
+    { n1: 63, n2: 7, op: 'divide', sym: '÷', ans: 9, tip: '想乘算除', exp: '想“七九六十三”，63 ÷ 7 = 9。' }
+  ];
+
+  const attempts: any[] = [];
+  for (let idx = 0; idx < total; idx++) {
+    const item = sampleBank[idx % sampleBank.length];
+    const isCorrect = idx < correctCount;
+    const isTimeout = !isCorrect && idx === total - 1;
+    const timeSpentSec = Number((isCorrect ? (1.5 + (idx * 0.3) % 2.1) : (isTimeout ? 5.0 : 4.4)).toFixed(1));
+    const userAnswer = isCorrect ? item.ans : (isTimeout ? null : item.ans + (idx % 2 === 0 ? 2 : -2));
+
+    attempts.push({
+      question: {
+        id: `q_sample_${idx}_${dateTs}`,
+        num1: item.n1,
+        num2: item.n2,
+        operator: item.op,
+        operatorSymbol: item.sym,
+        correctAnswer: item.ans,
+        explanation: item.exp,
+        methodTip: item.tip,
+        difficultyGrade: grade === 'grade1' ? '一年级(20以内)' : '二年级(100以内&九九乘除)'
+      },
+      userAnswer,
+      isCorrect,
+      timeSpentSec,
+      isTimeout,
+      timestamp: dateTs + idx * 4500
+    });
+  }
+  return attempts;
+}
+
+// Generate formatted WeChat report text for parents to share/copy to mobile chats
+export function generateWeChatReport(session: PracticeSessionResult, studentName?: string): string {
+  const name = studentName || session.studentName || '同学';
+  const dateText = new Date(session.timestamp).toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  const lines = [
+    `📊【小象速算 · 挑战学情战报】`,
+    `👤 学员：${name}`,
+    `⏰ 时间：${dateText}`,
+    `🎯 模式：${session.challengeMode || '每日挑战'}（共 ${session.totalQuestions} 题）`,
+    `🏆 成绩：正确率 ${session.accuracyRate}% · 平均耗时 ${session.averageTimeSec}s/题`,
+    `⭐ 奖励：+${session.starsEarned} 颗小星星 (答对 ${session.correctCount} 题 / 错题 ${session.wrongCount} 题 / 超时 ${session.timeoutCount} 题)`,
+    ``,
+    `📝 每题准确率与用时明细：`
+  ];
+
+  session.attempts.forEach((att, idx) => {
+    const status = att.isCorrect ? '✅ 答对' : att.isTimeout ? '⏰ 5秒超时' : `❌ 错填为 ${att.userAnswer}`;
+    lines.push(
+      `${idx + 1}. ${att.question.num1} ${att.question.operatorSymbol} ${att.question.num2} = ${att.question.correctAnswer} ➜ ${status} | 耗时 ${att.timeSpentSec}s`
+    );
+  });
+
+  lines.push('');
+  lines.push(`📱 完整数据已同步至家长手机端，点击随练系统随时复习错题与用时！`);
+  return lines.join('\n');
+}
+
+// Mobile Sync Payload encoding & decoding (Supports Full Sessions & Question-level Attempts)
+export function createSyncPayload(studentId?: string): string {
+  const targetId = studentId || getActiveStudentId();
+  const profiles = getStudentProfiles();
+  const student = profiles.find(p => p.id === targetId) || profiles[0] || DEFAULT_STUDENTS[0];
+  const mistakes = getMistakes(targetId);
+  const sessions = getPracticeSessions(targetId);
+
   const payload = {
-    v: 1,
+    v: 2,
     time: Date.now(),
-    student: settings.studentName,
-    grade: settings.grade,
-    stars: settings.currentStars,
-    mistakes: mistakes.map(m => ({
+    studentId: targetId,
+    student: student.name,
+    avatar: student.avatar,
+    grade: student.grade,
+    stars: student.currentStars,
+    // Pack recent 10 sessions with complete question-by-question attempts
+    sessions: sessions.slice(0, 10).map(s => ({
+      id: s.id,
+      ts: s.timestamp,
+      d: s.dateStr,
+      tot: s.totalQuestions,
+      cor: s.correctCount,
+      wrg: s.wrongCount,
+      to: s.timeoutCount,
+      acc: s.accuracyRate,
+      avg: s.averageTimeSec,
+      star: s.starsEarned,
+      mode: s.challengeMode || '每日练习',
+      atts: s.attempts.map(a => ({
+        n1: a.question.num1,
+        n2: a.question.num2,
+        op: a.question.operator,
+        sym: a.question.operatorSymbol,
+        ans: a.question.correctAnswer,
+        ua: a.userAnswer,
+        ok: a.isCorrect,
+        sec: a.timeSpentSec,
+        to: a.isTimeout,
+        tip: a.question.methodTip,
+        exp: a.question.explanation
+      }))
+    })),
+    mistakes: mistakes.slice(0, 20).map(m => ({
       id: m.id,
       q: {
         id: m.question.id,
@@ -880,43 +1018,119 @@ export function importSyncPayload(encoded: string): boolean {
       jsonStr = atob(decodeURIComponent(encoded));
     }
     const data = JSON.parse(jsonStr);
-    if (!data || !Array.isArray(data.mistakes)) return false;
+    if (!data) return false;
 
-    const importedMistakes: MistakeItem[] = data.mistakes.map((m: any) => ({
-      id: m.id || 'm_' + Math.random().toString(36).substring(2, 8),
-      question: {
-        id: m.q?.id || 'q_' + Math.random(),
-        num1: m.q?.num1 || 0,
-        num2: m.q?.num2 || 0,
-        operator: m.q?.op || 'add',
-        operatorSymbol: m.q?.sym || '+',
-        correctAnswer: m.q?.ans || 0,
-        explanation: m.q?.exp || '',
-        methodTip: m.q?.tip || '',
-        difficultyGrade: m.q?.grd || '口算题'
-      },
-      wrongAnswer: m.wa !== undefined ? m.wa : null,
-      isTimeout: !!m.to,
-      timeSpentSec: m.sec || 5,
-      wrongCount: m.cnt || 1,
-      mastered: !!m.mas,
-      lastPracticedAt: Date.now(),
-      firstFailedAt: Date.now()
-    }));
+    const studentId = data.studentId || (data.student ? 'student_' + data.student : getActiveStudentId());
 
-    // Merge with existing mistakes without duplicate IDs
-    const existing = getMistakes();
-    const map = new Map<string, MistakeItem>();
-    existing.forEach(m => map.set(m.id, m));
-    importedMistakes.forEach(m => map.set(m.id, m));
-    saveMistakes(Array.from(map.values()));
+    // 1. Import or update student profile
+    const profiles = getStudentProfiles();
+    let existingProfile = profiles.find(p => p.id === studentId || p.name === data.student);
+    if (!existingProfile && data.student) {
+      existingProfile = {
+        id: studentId,
+        name: data.student,
+        avatar: data.avatar || '🦁',
+        grade: data.grade || 'grade2',
+        dailyTargetCount: 20,
+        targetAccuracyRate: 90,
+        rewardGoalTitle: '去游乐园玩',
+        rewardGoalStarsNeeded: 50,
+        currentStars: typeof data.stars === 'number' ? data.stars : 10,
+        preferences: { ...DEFAULT_STUDENT_PREFERENCES },
+        createdAt: Date.now(),
+        lastActiveAt: Date.now()
+      };
+      profiles.push(existingProfile);
+      saveStudentProfiles(profiles);
+    } else if (existingProfile) {
+      if (typeof data.stars === 'number') existingProfile.currentStars = Math.max(existingProfile.currentStars, data.stars);
+      if (data.grade) existingProfile.grade = data.grade;
+      existingProfile.lastActiveAt = Date.now();
+      saveStudentProfiles(profiles);
+    }
+    setActiveStudentId(existingProfile ? existingProfile.id : studentId);
 
-    if (data.student || data.grade) {
-      const settings = getParentSettings();
-      if (data.student) settings.studentName = data.student;
-      if (data.grade) settings.grade = data.grade;
-      if (typeof data.stars === 'number') settings.currentStars = Math.max(settings.currentStars, data.stars);
-      saveParentSettings(settings);
+    // 2. Import complete challenge sessions with each question's attempts
+    if (Array.isArray(data.sessions)) {
+      const importedSessions: PracticeSessionResult[] = data.sessions.map((s: any) => ({
+        id: s.id || 'sess_' + s.ts,
+        studentId,
+        studentName: data.student || '学生',
+        challengeMode: s.mode || '每日挑战',
+        timestamp: s.ts || Date.now(),
+        dateStr: s.d || new Date(s.ts || Date.now()).toISOString().split('T')[0],
+        totalQuestions: s.tot || 0,
+        correctCount: s.cor || 0,
+        wrongCount: s.wrg || 0,
+        timeoutCount: s.to || 0,
+        accuracyRate: s.acc || 0,
+        averageTimeSec: s.avg || 0,
+        score: (s.cor || 0) * 10,
+        starsEarned: s.star || 1,
+        gradeLevel: data.grade || 'grade2',
+        operations: ['add', 'subtract', 'multiply', 'divide'],
+        attempts: Array.isArray(s.atts) ? s.atts.map((a: any) => ({
+          question: {
+            id: 'q_' + Math.random().toString(36).substring(2, 7),
+            num1: a.n1,
+            num2: a.n2,
+            operator: a.op || 'add',
+            operatorSymbol: a.sym || '+',
+            correctAnswer: a.ans,
+            explanation: a.exp || '',
+            methodTip: a.tip || '口算技巧',
+            difficultyGrade: data.grade || '口算'
+          },
+          userAnswer: a.ua !== undefined ? a.ua : null,
+          isCorrect: !!a.ok,
+          timeSpentSec: a.sec || 0,
+          isTimeout: !!a.to,
+          timestamp: s.ts || Date.now()
+        })) : []
+      }));
+
+      const currentSessions = getPracticeSessions(studentId);
+      const sessionMap = new Map<string, PracticeSessionResult>();
+      currentSessions.forEach(sess => sessionMap.set(sess.id, sess));
+      importedSessions.forEach(sess => sessionMap.set(sess.id, sess));
+      const mergedSessions = Array.from(sessionMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+
+      const key = getSessionsKey(studentId);
+      localStorage.setItem(key, JSON.stringify(mergedSessions));
+      if (studentId === 'student_tiantian') {
+        localStorage.setItem(SESSIONS_KEY, JSON.stringify(mergedSessions));
+      }
+    }
+
+    // 3. Import mistakes
+    if (Array.isArray(data.mistakes)) {
+      const importedMistakes: MistakeItem[] = data.mistakes.map((m: any) => ({
+        id: m.id || 'm_' + Math.random().toString(36).substring(2, 8),
+        question: {
+          id: m.q?.id || 'q_' + Math.random(),
+          num1: m.q?.num1 || 0,
+          num2: m.q?.num2 || 0,
+          operator: m.q?.op || 'add',
+          operatorSymbol: m.q?.sym || '+',
+          correctAnswer: m.q?.ans || 0,
+          explanation: m.q?.exp || '',
+          methodTip: m.q?.tip || '',
+          difficultyGrade: m.q?.grd || '口算题'
+        },
+        wrongAnswer: m.wa !== undefined ? m.wa : null,
+        isTimeout: !!m.to,
+        timeSpentSec: m.sec || 5,
+        wrongCount: m.cnt || 1,
+        mastered: !!m.mas,
+        lastPracticedAt: Date.now(),
+        firstFailedAt: Date.now()
+      }));
+
+      const existingMistakes = getMistakes(studentId);
+      const mistakeMap = new Map<string, MistakeItem>();
+      existingMistakes.forEach(m => mistakeMap.set(m.id, m));
+      importedMistakes.forEach(m => mistakeMap.set(m.id, m));
+      saveMistakes(Array.from(mistakeMap.values()), studentId);
     }
 
     return true;

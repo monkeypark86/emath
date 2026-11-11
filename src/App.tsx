@@ -315,6 +315,7 @@ export default function App() {
             }}
             onOpenProfileModal={() => setIsProfileModalOpen(true)}
             onStudentUpdated={() => setActiveStudent(getActiveStudent())}
+            onOpenMobileSync={() => setIsSyncModalOpen(true)}
           />
         )}
 

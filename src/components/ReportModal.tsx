@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PracticeSessionResult, MathQuestion } from '../types/math';
+import { generateWeChatReport } from '../utils/storage';
 import {
   Trophy,
   Award,
@@ -12,7 +13,10 @@ import {
   Share2,
   ArrowRight,
   Printer,
-  Sparkles
+  Sparkles,
+  Smartphone,
+  Copy,
+  Check
 } from 'lucide-react';
 
 interface ReportModalProps {
@@ -34,6 +38,16 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   onOpenMobileSync,
   onPrintWorksheet
 }) => {
+  const [copiedWeChat, setCopiedWeChat] = useState<boolean>(false);
+
+  const handleCopyWeChat = () => {
+    const text = generateWeChatReport(result);
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedWeChat(true);
+      setTimeout(() => setCopiedWeChat(false), 2500);
+    });
+  };
+
   const mistakesInSession = result.attempts
     .filter(a => !a.isCorrect)
     .map(a => a.question);
@@ -247,24 +261,32 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
             <button
               type="button"
-              onClick={() => onPrintWorksheet(result.attempts.map(a => a.question))}
-              className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+              onClick={onOpenMobileSync}
+              className="py-2.5 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs border border-indigo-200 transition-colors flex items-center justify-center gap-1.5"
             >
-              <Printer className="w-3.5 h-3.5" />
-              <span>打印练习纸</span>
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>同步到家长手机</span>
             </button>
 
             <button
               type="button"
-              onClick={onOpenMobileSync}
-              className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+              onClick={handleCopyWeChat}
+              className="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs border border-emerald-200 transition-colors flex items-center justify-center gap-1.5"
             >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>同步到手机</span>
+              {copiedWeChat ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedWeChat ? '已复制战报！' : '复制微信播报'}</span>
             </button>
           </div>
 
-          <div className="pt-2 text-center">
+          <div className="flex items-center justify-center gap-4 pt-1">
+            <button
+              type="button"
+              onClick={() => onPrintWorksheet(result.attempts.map(a => a.question))}
+              className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors"
+            >
+              <Printer className="w-3.5 h-3.5" /> 打印练习纸
+            </button>
+            <span className="text-slate-300">·</span>
             <button
               type="button"
               onClick={onClose}

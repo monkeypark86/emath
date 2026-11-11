@@ -25,6 +25,9 @@ export interface QuestionAttempt {
 
 export interface PracticeSessionResult {
   id: string;
+  studentId?: string;
+  studentName?: string;
+  challengeMode?: string;
   timestamp: number;
   dateStr: string;
   totalQuestions: number;

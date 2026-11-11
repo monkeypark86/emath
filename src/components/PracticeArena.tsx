@@ -86,6 +86,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
   const [isVerticalFormula, setIsVerticalFormula] = useState<boolean>(() => getPreferredLayout());
   const [countdownAnim, setCountdownAnim] = useState<string | null>(null);
   const [hasTimedOutCurrentQ, setHasTimedOutCurrentQ] = useState<boolean>(false);
+  const [currentModeTitle, setCurrentModeTitle] = useState<string>('每日练习');
 
   useEffect(() => {
     if (studentPrefs?.equationLayout === 'auto' && questions[currentIndex]) {
@@ -112,6 +113,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
   // If initialQuestions provided (e.g. retaking mistakes), auto start with Ready Go animation
   useEffect(() => {
     if (initialQuestions && initialQuestions.length > 0) {
+      setCurrentModeTitle('错题重测');
       setQuestions(initialQuestions);
       setQuestionCount(initialQuestions.length);
       setCurrentIndex(0);
@@ -240,6 +242,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
   // 1. 🌟 每日练习
   const startDailyPractice = () => {
+    setCurrentModeTitle('每日练习');
     const prefs = student?.preferences || DEFAULT_STUDENT_PREFERENCES;
     const g = student?.grade || defaultGrade;
     const ops = prefs.selectedOps && prefs.selectedOps.length > 0 ? prefs.selectedOps : (['add', 'subtract', 'multiply', 'divide'] as OperationType[]);
@@ -250,6 +253,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
   // 2. ⚡ 每日挑战 (极速闪电3秒)
   const startDailyChallenge = () => {
+    setCurrentModeTitle('每日挑战 (3s极速)');
     const prefs = student?.preferences || DEFAULT_STUDENT_PREFERENCES;
     const g = student?.grade || defaultGrade;
     const ops = prefs.selectedOps && prefs.selectedOps.length > 0 ? prefs.selectedOps : (['add', 'subtract', 'multiply', 'divide'] as OperationType[]);
@@ -259,6 +263,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
   // 3. 📝 错题练习
   const startMistakePractice = () => {
+    setCurrentModeTitle('错题专练');
     const unmastered = getMistakes(student?.id).filter(m => !m.mastered);
     if (unmastered.length === 0) {
       sound.playCorrect();
@@ -274,6 +279,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
   // 4. 🎯 今日推荐个性化练习
   const startRecommendedPractice = () => {
+    setCurrentModeTitle('智能推荐练习');
     const unmastered = getMistakes(student?.id).filter(m => !m.mastered);
     const mistakeQuestions = unmastered.slice(0, 5).map(m => m.question);
     const needed = Math.max(0, 10 - mistakeQuestions.length);
@@ -398,6 +404,9 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
     const result: PracticeSessionResult = {
       id: 'sess_' + Date.now(),
+      studentId: student?.id,
+      studentName: student?.name,
+      challengeMode: currentModeTitle,
       timestamp: Date.now(),
       dateStr,
       totalQuestions: total,
@@ -413,7 +422,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
       starsEarned
     };
 
-    savePracticeSession(result);
+    savePracticeSession(result, student?.id);
 
     onSessionComplete(result);
   };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
-import { createSyncPayload, getMistakes, getParentSettings } from '../utils/storage';
+import { createSyncPayload, getMistakes, getParentSettings, getPracticeSessions, generateWeChatReport } from '../utils/storage';
 import {
   Smartphone,
   QrCode,
@@ -11,7 +11,8 @@ import {
   ShieldCheck,
   Wifi,
   Sparkles,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 
 interface MobileSyncModalProps {
@@ -29,15 +30,17 @@ export const MobileSyncModal: React.FC<MobileSyncModalProps> = ({
   const [syncUrl, setSyncUrl] = useState<string>('');
   const [pairingCode, setPairingCode] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
+  const [copiedWeChat, setCopiedWeChat] = useState<boolean>(false);
   const [pushStatus, setPushStatus] = useState<'synced' | 'syncing'>('synced');
 
   const mistakes = getMistakes();
   const settings = getParentSettings();
+  const sessions = getPracticeSessions();
 
   useEffect(() => {
     if (!isOpen) return;
 
-    // Create sync payload
+    // Create sync payload (includes recent sessions with full question attempts)
     const payload = createSyncPayload();
     const baseUrl = window.location.origin + window.location.pathname;
     const fullUrl = `${baseUrl}?sync=${payload}#mobile`;
@@ -77,12 +80,22 @@ export const MobileSyncModal: React.FC<MobileSyncModalProps> = ({
     });
   };
 
+  const handleCopyLatestReport = () => {
+    if (sessions.length > 0) {
+      const text = generateWeChatReport(sessions[0], settings.studentName);
+      navigator.clipboard.writeText(text).then(() => {
+        setCopiedWeChat(true);
+        setTimeout(() => setCopiedWeChat(false), 2000);
+      });
+    }
+  };
+
   const handleSimulatePush = () => {
     setPushStatus('syncing');
     setTimeout(() => {
       setPushStatus('synced');
-      alert(`已自动推送 ${mistakes.length} 道错题至已配对的移动设备！`);
-    }, 600);
+      alert(`已成功重新广播同步包：已包含 ${sessions.length} 轮挑战的每题答题流水与 ${mistakes.length} 道错题！`);
+    }, 500);
   };
 
   if (!isOpen) return null;
@@ -103,28 +116,28 @@ export const MobileSyncModal: React.FC<MobileSyncModalProps> = ({
             <Smartphone className="w-6 h-6" />
           </div>
           <h2 className="text-xl sm:text-2xl font-display font-bold text-slate-900">
-            错题集实时同步至手机
+            挑战数据与每题用时同步至家长手机
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            练习一结束，错题自动推送到家长和孩子的移动端，随时随地拿出手机即可独立回顾练习。
+            每次挑战完成，每道题的做题准确率与精确耗时已全部归档，手机扫码即可随时查阅。
           </p>
         </div>
 
         {/* Sync Status Banner */}
-        <div className="my-4 p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+        <div className="my-4 p-3 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="font-semibold text-slate-800">
-              云端推送通道正常 ({mistakes.length} 道错题待练)
+              数据包已就绪 · 已包含 {sessions.length} 轮挑战每题流水 & {mistakes.length} 道错题
             </span>
           </div>
           <button
             type="button"
             onClick={handleSimulatePush}
-            className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+            className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1 self-end sm:self-auto"
           >
             <Send className="w-3 h-3" />
-            <span>重新广播推送</span>
+            <span>重新打包广播</span>
           </button>
         </div>
 
@@ -185,19 +198,32 @@ export const MobileSyncModal: React.FC<MobileSyncModalProps> = ({
           </div>
         </div>
 
-        {/* Direct Action to Test Mobile Simulator in App */}
-        <div className="mt-5 pt-4 border-t border-slate-100 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onOpenMobileView();
-            }}
-            className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-colors flex items-center justify-center gap-2"
-          >
-            <Smartphone className="w-4 h-4" />
-            <span>在当前屏幕打开“手机随身练”视图</span>
-          </button>
+        {/* Quick WeChat Broadcast Copy & Direct Mobile Simulator */}
+        <div className="mt-4 space-y-2.5">
+          {sessions.length > 0 && (
+            <button
+              type="button"
+              onClick={handleCopyLatestReport}
+              className="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+            >
+              {copiedWeChat ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedWeChat ? '已复制微信战报！可直接粘贴至群聊' : '📋 一键复制最近一次挑战的微信学情战报'}</span>
+            </button>
+          )}
+
+          <div className="pt-2 border-t border-slate-100 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenMobileView();
+              }}
+              className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-colors flex items-center justify-center gap-2"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>在当前屏幕打开“手机随身练”视图</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -14,7 +14,9 @@ import {
   getMistakes,
   getDailyActivityStats,
   getWeakPointAnalysis,
-  seedSampleDataIfEmpty
+  seedSampleDataIfEmpty,
+  generateWeChatReport,
+  getActiveStudent
 } from '../utils/storage';
 import { evaluateBadges, calculateBadgeStats } from '../utils/badgeSystem';
 import { PrintCertificateModal } from './PrintCertificateModal';
@@ -35,7 +37,13 @@ import {
   Printer,
   Medal,
   Check,
-  Lock
+  Lock,
+  Eye,
+  Smartphone,
+  Copy,
+  XCircle,
+  ChevronRight,
+  X
 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -44,6 +52,7 @@ interface ParentDashboardProps {
   onPrintReport: () => void;
   onOpenProfileModal?: () => void;
   onStudentUpdated?: () => void;
+  onOpenMobileSync?: () => void;
 }
 
 export const ParentDashboard: React.FC<ParentDashboardProps> = ({
@@ -51,7 +60,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   onViewMistakes,
   onPrintReport,
   onOpenProfileModal,
-  onStudentUpdated
+  onStudentUpdated,
+  onOpenMobileSync
 }) => {
   const [settings, setSettings] = useState<ParentSettings>(getParentSettings());
   const [sessions, setSessions] = useState<PracticeSessionResult[]>([]);
@@ -63,6 +73,16 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [selectedBadgeForCert, setSelectedBadgeForCert] = useState<BadgeItem | null>(null);
   const [isCertModalOpen, setIsCertModalOpen] = useState<boolean>(false);
   const [isEditingSettings, setIsEditingSettings] = useState<boolean>(false);
+  const [selectedSessionForDetail, setSelectedSessionForDetail] = useState<PracticeSessionResult | null>(null);
+  const [copiedWeChatId, setCopiedWeChatId] = useState<string | null>(null);
+
+  const handleCopySessionWeChat = (session: PracticeSessionResult) => {
+    const text = generateWeChatReport(session, session.studentName || settings.studentName);
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedWeChatId(session.id);
+      setTimeout(() => setCopiedWeChatId(null), 2500);
+    });
+  };
 
   // Form State for editing
   const [formName, setFormName] = useState<string>(settings.studentName);
@@ -530,12 +550,29 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
       {/* Recent Sessions Table */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs my-6">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
           <div>
-            <h2 className="text-sm font-bold text-slate-900">近期口算挑战记录</h2>
-            <p className="text-[11px] text-slate-400">保留最近历次5秒速算闯关成绩</p>
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span>近期口算挑战记录与每题用时明细</span>
+              <span className="text-[10px] font-normal text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
+                点击任意挑战可查看每道题对错与用时
+              </span>
+            </h2>
+            <p className="text-[11px] text-slate-400">保留历次速算闯关成绩，每题用时与准确率已完整归档</p>
           </div>
-          <span className="text-xs text-slate-400">共记录 {sessions.length} 轮次</span>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-xs text-slate-400">共记录 {sessions.length} 轮次</span>
+            {onOpenMobileSync && (
+              <button
+                type="button"
+                onClick={onOpenMobileSync}
+                className="py-1 px-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold flex items-center gap-1 transition-colors"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>同步至手机</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {sessions.length === 0 ? (
@@ -546,18 +583,29 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <thead>
                 <tr className="text-slate-400 border-b border-slate-100 pb-2">
                   <th className="py-2 font-medium">练习时间</th>
+                  <th className="py-2 font-medium">挑战模式</th>
                   <th className="py-2 font-medium">题量</th>
                   <th className="py-2 font-medium">正确率</th>
                   <th className="py-2 font-medium">平均速度</th>
                   <th className="py-2 font-medium">错题/超时</th>
                   <th className="py-2 font-medium">获得奖励</th>
+                  <th className="py-2 font-medium text-right pr-2">每题明细</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono">
-                {sessions.slice(0, 8).map(s => (
-                  <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                {sessions.slice(0, 10).map(s => (
+                  <tr
+                    key={s.id}
+                    onClick={() => setSelectedSessionForDetail(s)}
+                    className="hover:bg-amber-50/50 cursor-pointer transition-colors group"
+                  >
                     <td className="py-2.5 text-slate-600 font-sans">
                       {new Date(s.timestamp).toLocaleDateString()} {new Date(s.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                    <td className="py-2.5 font-sans">
+                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 text-slate-700">
+                        {s.challengeMode || '每日练习'}
+                      </span>
                     </td>
                     <td className="py-2.5 text-slate-800">{s.totalQuestions} 题</td>
                     <td className="py-2.5">
@@ -572,6 +620,19 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     <td className="py-2.5 text-amber-600 font-sans">
                       +{s.starsEarned} 颗星 ⭐
                     </td>
+                    <td className="py-2.5 text-right pr-2 font-sans">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSessionForDetail(s);
+                        }}
+                        className="py-1 px-2.5 rounded-lg bg-slate-100 group-hover:bg-amber-500 group-hover:text-white text-slate-700 text-[11px] font-medium transition-colors inline-flex items-center gap-1"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>查看明细</span>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -579,6 +640,191 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           </div>
         )}
       </div>
+
+      {/* Challenge Question-by-Question Detail Modal */}
+      {selectedSessionForDetail && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl relative my-6">
+            <button
+              type="button"
+              onClick={() => setSelectedSessionForDetail(null)}
+              className="absolute top-5 right-5 p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header info */}
+            <div className="pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-xl">📊</span>
+                <h3 className="text-lg font-bold text-slate-900 font-display">
+                  {selectedSessionForDetail.studentName || settings.studentName} 的挑战答题记录与用时
+                </h3>
+                <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  {selectedSessionForDetail.challengeMode || '每日练习'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500">
+                测试时间：{new Date(selectedSessionForDetail.timestamp).toLocaleString('zh-CN')} · 详细记录每道题的做题准确率、孩子实际填写与精确用时
+              </p>
+            </div>
+
+            {/* Quick KPI stats */}
+            <div className="grid grid-cols-4 gap-2.5 my-4 text-center">
+              <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-2xl">
+                <div className="text-[10px] text-slate-500">做题总数</div>
+                <div className="text-lg font-mono font-bold text-slate-900 mt-0.5">
+                  {selectedSessionForDetail.totalQuestions} 题
+                </div>
+              </div>
+              <div className="p-2.5 bg-emerald-50/70 border border-emerald-100 rounded-2xl">
+                <div className="text-[10px] text-emerald-700 font-medium">准确率</div>
+                <div className="text-lg font-mono font-bold text-emerald-600 mt-0.5">
+                  {selectedSessionForDetail.accuracyRate}%
+                </div>
+              </div>
+              <div className="p-2.5 bg-blue-50/70 border border-blue-100 rounded-2xl">
+                <div className="text-[10px] text-blue-700 font-medium">平均用时</div>
+                <div className="text-lg font-mono font-bold text-blue-700 mt-0.5">
+                  {selectedSessionForDetail.averageTimeSec}s
+                </div>
+              </div>
+              <div className="p-2.5 bg-amber-50/70 border border-amber-100 rounded-2xl">
+                <div className="text-[10px] text-amber-700 font-medium">获得奖励</div>
+                <div className="text-lg font-mono font-bold text-amber-600 mt-0.5">
+                  +{selectedSessionForDetail.starsEarned} ⭐
+                </div>
+              </div>
+            </div>
+
+            {/* Question Breakdown List */}
+            <div className="my-4">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-2">
+                <span>每道题答题详情 ({selectedSessionForDetail.attempts.length} 题)</span>
+                <span className="text-[11px] text-slate-400 font-normal">
+                  对 {selectedSessionForDetail.correctCount} / 错 {selectedSessionForDetail.wrongCount} / 超时 {selectedSessionForDetail.timeoutCount}
+                </span>
+              </div>
+
+              {selectedSessionForDetail.attempts.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">
+                  暂未记录该轮具体每题答题流水
+                </div>
+              ) : (
+                <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+                  {selectedSessionForDetail.attempts.map((att, idx) => (
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-2xl border text-xs flex items-center justify-between transition-colors ${
+                        att.isCorrect
+                          ? 'bg-slate-50/60 border-slate-200'
+                          : att.isTimeout
+                          ? 'bg-amber-50/70 border-amber-200'
+                          : 'bg-rose-50/70 border-rose-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-5 text-center font-mono font-bold text-slate-400">
+                          #{idx + 1}
+                        </span>
+                        <div>
+                          <div className="font-mono font-bold text-sm text-slate-900">
+                            {att.question.num1} {att.question.operatorSymbol} {att.question.num2} = {att.question.correctAnswer}
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2">
+                            <span>
+                              {att.isCorrect ? (
+                                <strong className="text-emerald-600 font-normal">孩子作答：{att.userAnswer}</strong>
+                              ) : att.isTimeout ? (
+                                <strong className="text-amber-700 font-normal">倒计时超时未提交</strong>
+                              ) : (
+                                <strong className="text-rose-600 font-normal">错填为：{att.userAnswer} (正确答案 {att.question.correctAnswer})</strong>
+                              )}
+                            </span>
+                            {att.question.methodTip && (
+                              <span className="text-slate-400 bg-white/80 px-1.5 py-0.2 rounded border border-slate-200/50">
+                                {att.question.methodTip}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 font-mono">
+                        <div className="text-right">
+                          <div className="font-semibold text-slate-700">
+                            ⏱️ {att.timeSpentSec}s
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {att.timeSpentSec <= 2 ? '⚡ 极速心算' : att.timeSpentSec <= 4 ? '稳健作答' : '稍有迟疑'}
+                          </div>
+                        </div>
+
+                        <div>
+                          {att.isCorrect ? (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">
+                              <CheckCircle2 className="w-3 h-3" /> 正确
+                            </span>
+                          ) : att.isTimeout ? (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800">
+                              <Clock className="w-3 h-3" /> 超时
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800">
+                              <XCircle className="w-3 h-3" /> 算错
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer action buttons */}
+            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                {onOpenMobileSync && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedSessionForDetail(null);
+                      onOpenMobileSync();
+                    }}
+                    className="flex-1 sm:flex-none py-2 px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span>同步到家长手机</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleCopySessionWeChat(selectedSessionForDetail)}
+                  className="flex-1 sm:flex-none py-2 px-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  {copiedWeChatId === selectedSessionForDetail.id ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  <span>
+                    {copiedWeChatId === selectedSessionForDetail.id ? '已复制战报！' : '复制微信播报战报'}
+                  </span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedSessionForDetail(null)}
+                className="w-full sm:w-auto py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition-colors"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Settings Modal */}
       {isEditingSettings && (
