@@ -259,7 +259,7 @@ export default function App() {
       )}
 
       {/* Main Content Arena */}
-      <main className={`flex-1 ${isPracticingActive ? 'py-4 flex flex-col justify-center' : ''}`}>
+      <main className={`flex-1 ${isPracticingActive ? 'py-0 flex flex-col items-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]' : ''}`}>
         {currentTab === 'practice' && (
           <PracticeArena
             key={activeStudent.id + '_' + (activeStudent.preferences?.equationLayout || '') + '_' + (activeStudent.preferences?.fontSizeScale || '')}

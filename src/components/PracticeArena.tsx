@@ -26,7 +26,6 @@ import {
   BookOpen,
   Target
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 interface PracticeArenaProps {
   onSessionComplete: (result: PracticeSessionResult) => void;
@@ -323,12 +322,6 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
       setScore(prev => prev + baseScore + speedBonus + streakBonus);
       setLastFeedback('correct');
 
-      if (!hasFailedBefore && newStreak > 0 && newStreak % 5 === 0) {
-        if (studentPrefs?.celebrationConfetti !== false) {
-          confetti({ particleCount: 35, spread: 60, origin: { y: 0.6 } });
-        }
-      }
-
       const attempt: QuestionAttempt = {
         question: currentQ,
         userAnswer: hasFailedBefore ? firstWrongAnswer : numAnswer,
@@ -340,11 +333,8 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
       const updatedAttempts = [...attempts, attempt];
       setAttempts(updatedAttempts);
-      setIsAnswerRevealed(true);
-
-      setTimeout(() => {
-        advanceNextQuestion(updatedAttempts);
-      }, 550);
+      setIsAnswerRevealed(false);
+      advanceNextQuestion(updatedAttempts);
     } else {
       if (studentPrefs?.soundEnabled !== false) {
         sound.playWrong();
@@ -425,14 +415,6 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
 
     savePracticeSession(result);
 
-    if (accuracyRate >= 80 && studentPrefs?.celebrationConfetti !== false) {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.5 }
-      });
-    }
-
     onSessionComplete(result);
   };
 
@@ -451,9 +433,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
         if (studentPrefs?.autoSubmitWhenComplete && questions[currentIndex]) {
           const expectedLen = Math.abs(questions[currentIndex].correctAnswer).toString().length;
           if (nextVal.length === expectedLen) {
-            setTimeout(() => {
-              handleSubmitAnswer(nextVal);
-            }, 60);
+            handleSubmitAnswer(nextVal);
           }
         }
       }
@@ -470,9 +450,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
           if (studentPrefs?.autoSubmitWhenComplete && questions[currentIndex]) {
             const expectedLen = Math.abs(questions[currentIndex].correctAnswer).toString().length;
             if (nextVal.length === expectedLen) {
-              setTimeout(() => {
-                handleSubmitAnswer(nextVal);
-              }, 60);
+              handleSubmitAnswer(nextVal);
             }
           }
         }
@@ -491,7 +469,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
   const unmasteredMistakeCount = getMistakes(student?.id).filter(m => !m.mastered).length;
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-6 px-4 relative">
+    <div className={`w-full max-w-4xl mx-auto px-4 relative ${isPlaying ? 'py-1' : 'py-6'}`}>
       {/* Ready... Go! Countdown Animation Overlay */}
       {countdownAnim && (
         <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center text-white animate-in fade-in duration-200">
@@ -678,7 +656,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
         </div>
       ) : (
         /* Active Practice Arena (极致纯净免干扰) */
-        <div className="relative bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div className="relative bg-white border border-slate-200 rounded-3xl p-2 sm:p-3 shadow-sm">
           {/* 轻量退出按钮 */}
           <button
             type="button"
@@ -701,10 +679,10 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                     {/* Top Row: Num 1 (Right-aligned) */}
                     <div className={`${
                       studentPrefs?.fontSizeScale === 'xl'
-                        ? 'text-5xl sm:text-6xl md:text-7xl'
+                        ? 'text-7xl sm:text-8xl md:text-9xl'
                         : studentPrefs?.fontSizeScale === 'large'
-                        ? 'text-4xl sm:text-6xl'
-                        : 'text-4xl sm:text-5xl'
+                        ? 'text-6xl sm:text-7xl md:text-8xl'
+                        : 'text-6xl sm:text-7xl md:text-8xl'
                     } font-bold tracking-widest text-right w-full pr-1 font-mono`}>
                       {currentQ.num1}
                     </div>
@@ -712,23 +690,23 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                     {/* Bottom Row: Operator + Num 2 */}
                     <div className={`${
                       studentPrefs?.fontSizeScale === 'xl'
-                        ? 'text-5xl sm:text-6xl md:text-7xl'
+                        ? 'text-7xl sm:text-8xl md:text-9xl'
                         : studentPrefs?.fontSizeScale === 'large'
-                        ? 'text-4xl sm:text-6xl'
-                        : 'text-4xl sm:text-5xl'
+                        ? 'text-6xl sm:text-7xl md:text-8xl'
+                        : 'text-6xl sm:text-7xl md:text-8xl'
                     } font-bold tracking-widest flex items-center justify-between w-full mt-1.5 pr-1 font-mono`}>
-                      <span className="text-amber-500 font-bold text-3xl sm:text-4xl mr-3 font-mono">
+                      <span className="text-amber-500 font-bold text-7xl sm:text-8xl md:text-9xl mr-3 font-mono">
                         {currentQ.operatorSymbol}
                       </span>
                       <span>{currentQ.num2}</span>
                     </div>
 
                     {/* Solid Calculation Divider Line */}
-                    <div className="w-full h-1 bg-slate-900 my-2.5 rounded-full"></div>
+                    <div className="w-full h-1.5 bg-slate-900 my-2.5 rounded-full"></div>
 
                     {/* Answer Input Box directly under the line (Right-aligned) */}
                     <div className="w-full flex justify-end">
-                      <div className="min-w-[130px] sm:min-w-[150px] h-14 sm:h-16 bg-white border-2 border-amber-400 rounded-2xl flex items-center justify-end px-3 font-mono font-bold text-3xl sm:text-4xl text-amber-900 tracking-widest shadow-inner">
+                      <div className="min-w-[150px] sm:min-w-[180px] h-16 sm:h-20 bg-white border-2 border-amber-400 rounded-2xl flex items-center justify-end px-3 font-mono font-bold text-4xl sm:text-5xl text-amber-900 tracking-widest shadow-inner">
                         {inputVal || <span className="text-amber-300 animate-pulse">?</span>}
                       </div>
                     </div>
@@ -737,63 +715,35 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                   /* Horizontal Layout (横式) */
                   <div className={`${
                     studentPrefs?.fontSizeScale === 'xl'
-                      ? 'text-5xl sm:text-6xl md:text-7xl'
+                      ? 'text-7xl sm:text-8xl md:text-9xl'
                       : studentPrefs?.fontSizeScale === 'large'
-                      ? 'text-4xl sm:text-6xl'
-                      : 'text-4xl sm:text-5xl'
+                      ? 'text-6xl sm:text-7xl md:text-8xl'
+                      : 'text-6xl sm:text-7xl md:text-8xl'
                   } font-display font-bold text-slate-900 tracking-tight my-4 flex items-center justify-center gap-3`}>
                     <span>{currentQ.num1}</span>
-                    <span className="text-amber-500 font-mono">{currentQ.operatorSymbol}</span>
+                    <span className="text-amber-500 font-mono text-7xl sm:text-8xl md:text-9xl">{currentQ.operatorSymbol}</span>
                     <span>{currentQ.num2}</span>
                     <span className="text-slate-400">=</span>
-                    <div className="min-w-[80px] sm:min-w-[100px] h-14 sm:h-16 border-b-4 border-amber-500 bg-amber-50/40 rounded-t-lg flex items-center justify-center font-mono font-bold text-3xl sm:text-4xl text-amber-900">
+                    <div className="min-w-[100px] sm:min-w-[130px] h-16 sm:h-20 border-b-4 border-amber-500 bg-amber-50/40 rounded-t-lg flex items-center justify-center font-mono font-bold text-4xl sm:text-5xl text-amber-900">
                       {inputVal || <span className="text-amber-300 animate-pulse">?</span>}
                     </div>
                   </div>
                 )}
 
-                {/* Instant Feedback Notice */}
-                <div className="min-h-8 flex flex-col items-center justify-center my-1">
-                  {lastFeedback === 'correct' && (
-                    <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm animate-pulse">
-                      <CheckCircle2 className="w-5 h-5 fill-emerald-100" />
-                      <span>太棒了！回答正确，用时 {attempts[attempts.length - 1]?.timeSpentSec ?? elapsedTime} 秒！正在进入下一题...</span>
-                    </div>
-                  )}
-                  {lastFeedback === 'wrong' && (
-                    <div className="flex items-center gap-1.5 text-rose-600 font-bold text-sm">
-                      <XCircle className="w-5 h-5 fill-rose-100" />
-                      <span>❌ 答案不对，已自动记入错题集！请再仔细算算（算对后自动进入下一题）</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Pedagogical Hint when user makes a mistake */}
-                {lastFeedback === 'wrong' && (currentQ.methodTip || currentQ.explanation) && (
-                  <div className="mt-2 text-xs text-left bg-amber-50/90 border border-amber-200 p-3 rounded-2xl text-amber-950 w-full shadow-2xs">
-                    <div className="font-bold flex items-center gap-1 text-amber-900 text-xs mb-1">
-                      <HelpCircle className="w-4 h-4 text-amber-600" />
-                      <span>💡 巧算口诀与思路点拨：</span>
-                    </div>
-                    <p className="leading-relaxed text-slate-700">
-                      {currentQ.methodTip || currentQ.explanation}
-                    </p>
-                  </div>
-                )}
               </div>
             )}
           </div>
 
           {/* Large Kid-Friendly Touch & Keyboard On-Screen NumPad */}
-          <div className="max-w-xs sm:max-w-sm mx-auto mt-2">
-            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+          <div className="max-w-xl sm:max-w-3xl w-full mx-auto mt-4 px-2">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
                 <button
                   key={num}
                   type="button"
                   onClick={() => handleKeypadPress(num.toString())}
                   disabled={isAnswerRevealed}
-                  className="h-12 sm:h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 active:bg-amber-100 text-slate-800 font-display font-bold text-xl sm:text-2xl border border-slate-200 transition-colors shadow-xs"
+                  className="h-16 sm:h-20 md:h-24 rounded-3xl bg-slate-50 hover:bg-slate-100 active:bg-amber-100 text-slate-900 font-display font-black text-3xl sm:text-4xl md:text-5xl border-2 border-slate-200/80 transition-all shadow-sm active:scale-95 cursor-pointer"
                 >
                   {num}
                 </button>
@@ -803,7 +753,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 type="button"
                 onClick={() => handleKeypadPress('clear')}
                 disabled={isAnswerRevealed}
-                className="h-12 sm:h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-600 font-semibold text-sm border border-slate-200 transition-colors"
+                className="h-16 sm:h-20 md:h-24 rounded-3xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-bold text-xl sm:text-2xl border-2 border-slate-200/80 transition-all active:scale-95 cursor-pointer"
               >
                 清空
               </button>
@@ -812,7 +762,7 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 type="button"
                 onClick={() => handleKeypadPress('0')}
                 disabled={isAnswerRevealed}
-                className="h-12 sm:h-14 rounded-2xl bg-slate-50 hover:bg-slate-100 active:bg-amber-100 text-slate-800 font-display font-bold text-xl sm:text-2xl border border-slate-200 transition-colors shadow-xs"
+                className="h-16 sm:h-20 md:h-24 rounded-3xl bg-slate-50 hover:bg-slate-100 active:bg-amber-100 text-slate-900 font-display font-black text-3xl sm:text-4xl md:text-5xl border-2 border-slate-200/80 transition-all shadow-sm active:scale-95 cursor-pointer"
               >
                 0
               </button>
@@ -821,30 +771,27 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 type="button"
                 onClick={() => handleKeypadPress('backspace')}
                 disabled={isAnswerRevealed}
-                className="h-12 sm:h-14 rounded-2xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-600 font-semibold text-lg border border-slate-200 transition-colors"
+                className="h-16 sm:h-20 md:h-24 rounded-3xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-bold text-2xl sm:text-3xl border-2 border-slate-200/80 transition-all active:scale-95 cursor-pointer"
               >
                 ⌫
               </button>
             </div>
 
             {/* Big Action / Submit Button */}
-            <div className="mt-2.5">
+            <div className="mt-4">
               <button
                 type="button"
                 onClick={() => handleSubmitAnswer()}
                 disabled={isAnswerRevealed || !inputVal}
-                className={`w-full h-12 sm:h-14 rounded-2xl font-display font-bold text-base sm:text-lg flex items-center justify-center gap-2 shadow-sm transition-all ${
+                className={`w-full h-20 sm:h-24 md:h-28 rounded-3xl font-display font-black text-2xl sm:text-3xl md:text-4xl flex items-center justify-center gap-3 shadow-lg transition-all cursor-pointer ${
                   inputVal && !isAnswerRevealed
-                    ? 'bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white shadow-amber-500/20'
+                    ? 'bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white shadow-amber-500/40'
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
               >
                 <span>确定提交 (Enter)</span>
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-9 h-9 sm:w-10 sm:h-10" />
               </button>
-            </div>
-            <div className="text-[11px] text-center text-slate-400 mt-2">
-              💡 提示：无需焦虑时间，答对后将自动进入下一题，系统会精准记录你的做题用时
             </div>
           </div>
         </div>
