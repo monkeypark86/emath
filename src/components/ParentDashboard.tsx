@@ -21,6 +21,7 @@ import {
 import { evaluateBadges, calculateBadgeStats } from '../utils/badgeSystem';
 import { PrintCertificateModal } from './PrintCertificateModal';
 import { useLang } from '../i18n';
+import { generateAiDiagnosis } from '../utils/aiDiagnosis';
 import {
   Users,
   Target,
@@ -44,7 +45,9 @@ import {
   Copy,
   XCircle,
   ChevronRight,
-  X
+  X,
+  Brain,
+  Lightbulb
 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -698,6 +701,47 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* AI Diagnosis Summary Card in Parent Detail Modal */}
+            {(() => {
+              const sessionAi = generateAiDiagnosis(selectedSessionForDetail);
+              return (
+                <div className="my-4 p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-amber-50/40 to-emerald-50/40 border border-indigo-200/70 text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-indigo-100">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                      <Brain className="w-4 h-4 text-indigo-600" />
+                      <span>{t('AI 智能学情诊断总结', 'AI Learning Insights')}</span>
+                    </div>
+                    <span className="font-mono text-xs font-bold text-indigo-700 bg-white border border-indigo-200 px-2 py-0.5 rounded">
+                      {t('心算流畅度', 'Fluency')} {sessionAi.fluencyScore}/100
+                    </span>
+                  </div>
+                  <div className="mt-2 text-slate-800 font-semibold flex items-start gap-1.5">
+                    <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <span>{sessionAi.headline}</span>
+                  </div>
+                  <p className="mt-1 text-slate-600 text-[11px] leading-relaxed">
+                    {sessionAi.summary}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2.5 pt-2 border-t border-indigo-100/60 text-[11px]">
+                    <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">
+                      <div className="font-bold text-emerald-800 mb-0.5 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        <span>{t('核心闪光点', 'Key Strengths')}</span>
+                      </div>
+                      <div className="text-slate-600">{sessionAi.strengths[0]}</div>
+                    </div>
+                    <div className="bg-white/80 p-2 rounded-xl border border-indigo-100">
+                      <div className="font-bold text-indigo-800 mb-0.5 flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 text-indigo-600" />
+                        <span>{t('专属突破建议', 'Action Plan')}</span>
+                      </div>
+                      <div className="text-slate-600">{sessionAi.recommendations[0]}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Question Breakdown List */}
             <div className="my-4">

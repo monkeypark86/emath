@@ -145,6 +145,13 @@ export default function App() {
     sound.setMuted(nextMuted);
   };
 
+  useEffect(() => {
+    (window as any).__TRIGGER_REPORT_MODAL__ = (r: PracticeSessionResult) => setSessionReport(r);
+    return () => {
+      delete (window as any).__TRIGGER_REPORT_MODAL__;
+    };
+  }, []);
+
   // When practice round completes
   const handleSessionComplete = (result: PracticeSessionResult) => {
     setIsPracticingActive(false);

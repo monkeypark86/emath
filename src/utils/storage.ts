@@ -787,6 +787,8 @@ export function seedSampleDataIfEmpty() {
 }
 
 // Generate formatted WeChat report text for parents to share/copy to mobile chats
+import { generateAiDiagnosis } from './aiDiagnosis';
+
 export function generateWeChatReport(session: PracticeSessionResult, studentName?: string): string {
   const name = studentName || session.studentName || tr('同学', 'Student');
   const dateText = new Date(session.timestamp).toLocaleString(getLang() === 'en' ? 'en-US' : 'zh-CN', {
@@ -796,6 +798,7 @@ export function generateWeChatReport(session: PracticeSessionResult, studentName
     minute: '2-digit'
   });
   const modeLabel = localizeSeededText(session.challengeMode || tr('每日挑战', 'Daily Challenge'));
+  const aiDiag = generateAiDiagnosis(session);
 
   const lines = [
     tr(`📊【小象速算 · 挑战学情战报】`, `📊 [Elephant Math · Practice Report]`),
@@ -803,13 +806,22 @@ export function generateWeChatReport(session: PracticeSessionResult, studentName
     tr(`⏰ 时间：${dateText}`, `⏰ Time: ${dateText}`),
     tr(`🎯 模式：${modeLabel}（共 ${session.totalQuestions} 题）`, `🎯 Mode: ${modeLabel} (${session.totalQuestions} Qs)`),
     tr(
-      `🏆 成绩：正确率 ${session.accuracyRate}% · 平均耗时 ${session.averageTimeSec}s/题`,
-      `🏆 Score: ${session.accuracyRate}% accuracy · Avg ${session.averageTimeSec}s/Q`
+      `🏆 成绩：正确率 ${session.accuracyRate}% · 平均耗时 ${session.averageTimeSec}s/题 · 心算流畅度 ${aiDiag.fluencyScore}分`,
+      `🏆 Score: ${session.accuracyRate}% accuracy · Avg ${session.averageTimeSec}s/Q · Fluency ${aiDiag.fluencyScore}/100`
     ),
     tr(
       `⭐ 奖励：+${session.starsEarned} 颗小星星 (答对 ${session.correctCount} 题 / 错题 ${session.wrongCount} 题 / 超时 ${session.timeoutCount} 题)`,
       `⭐ Reward: +${session.starsEarned} stars (${session.correctCount} right / ${session.wrongCount} wrong / ${session.timeoutCount} timeout)`
     ),
+    ``,
+    tr(`🤖【AI 智能学情诊断总结】`, `🤖 [AI Learning Diagnostic Summary]`),
+    `💡 ${aiDiag.headline}`,
+    tr(`🌟 闪光优势：`, `🌟 Key Strengths:`),
+    ...aiDiag.strengths.map(s => `   ${s}`),
+    tr(`🔍 诊断与归因：`, `🔍 Diagnostic Insights:`),
+    ...aiDiag.weaknesses.map(w => `   ${w}`),
+    tr(`🎯 突破建议：`, `🎯 Recommendations:`),
+    ...aiDiag.recommendations.map(r => `   ${r}`),
     ``,
     tr(`📝 每题准确率与用时明细：`, `📝 Question Breakdown:`)
   ];
