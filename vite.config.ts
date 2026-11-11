@@ -5,7 +5,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    base: '/elementary_math_practice-/',
+    base: './',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
