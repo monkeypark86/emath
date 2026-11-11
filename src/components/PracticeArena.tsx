@@ -7,9 +7,15 @@ import {
   QuestionAttempt,
   StudentProfile
 } from '../types/math';
-import { generateQuestionBatch } from '../utils/mathGenerator';
-import { recordMistake, savePracticeSession, addStars, getMistakes, DEFAULT_STUDENT_PREFERENCES } from '../utils/storage';
-import { sound } from '../utils/soundEffects';
+import {
+  recordMistake,
+  savePracticeSession,
+  addStars,
+  getMistakes,
+  DEFAULT_STUDENT_PREFERENCES,
+  formatGradeLabel,
+  formatGradeDetail
+} from '../utils/storage';
 import {
   Play,
   RotateCcw,
@@ -93,6 +99,49 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
       setIsVerticalFormula(getPreferredLayout(questions[currentIndex]));
     }
   }, [currentIndex, questions]);
+
+  // 保持学生设置实时双向同步（当学生切换或修改个人设置时，即刻更新口算竞技场状态）
+  useEffect(() => {
+    if (student) {
+      setGrade(student.grade || defaultGrade);
+      if (student.preferences) {
+        if (student.preferences.selectedOps && student.preferences.selectedOps.length > 0) {
+          setSelectedOps(student.preferences.selectedOps);
+        }
+        if (student.preferences.questionCount) {
+          setQuestionCount(student.preferences.questionCount);
+        }
+        if (student.preferences.perQuestionSeconds !== undefined) {
+          setCountdownDuration(student.preferences.perQuestionSeconds);
+        }
+      }
+      setIsVerticalFormula(getPreferredLayout());
+    }
+  }, [student, defaultGrade]);
+
+  useEffect(() => {
+    const handleProfileUpdate = (e: Event) => {
+      const customEvt = e as CustomEvent<StudentProfile>;
+      if (customEvt.detail && (!student || customEvt.detail.id === student.id)) {
+        const updated = customEvt.detail;
+        setGrade(updated.grade);
+        if (updated.preferences) {
+          if (updated.preferences.selectedOps && updated.preferences.selectedOps.length > 0) {
+            setSelectedOps(updated.preferences.selectedOps);
+          }
+          if (updated.preferences.questionCount) {
+            setQuestionCount(updated.preferences.questionCount);
+          }
+          if (updated.preferences.perQuestionSeconds !== undefined) {
+            setCountdownDuration(updated.preferences.perQuestionSeconds);
+          }
+          setIsVerticalFormula(getPreferredLayout());
+        }
+      }
+    };
+    window.addEventListener('emath_student_profile_updated', handleProfileUpdate);
+    return () => window.removeEventListener('emath_student_profile_updated', handleProfileUpdate);
+  }, [student]);
 
   // 本题错答追踪（记录第一次算错的状态与填写的错误答案）
   const [currentQWrongTries, setCurrentQWrongTries] = useState<number>(0);
@@ -494,7 +543,110 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
       {!isPlaying ? (
         /* Clean Main Practice Home: 每日练习、每日挑战、错题练习 选项 */
         <div className="space-y-6">
+          {/* 学生专属口算档案与设置概览卡片 (直观同步设置与一键修改) */}
+          <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-white border border-amber-200/80 rounded-3xl p-5 shadow-xs relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-14 h-14 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-3xl shadow-inner shrink-0">
+                  {student?.avatar || '🦁'}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-display font-bold text-lg text-slate-900">{student?.name || '同学'}</span>
+                    <span className="text-xs font-bold text-amber-800 bg-amber-200/90 px-2.5 py-0.5 rounded-full">
+                      {formatGradeLabel(student?.grade || grade)}
+                    </span>
+                    <span className="text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-medium">
+                      {formatGradeDetail(student?.grade || grade)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-1 flex items-center gap-1 font-medium italic">
+                    <span>💬</span>
+                    <span>“{student?.preferences?.motto || '每天坚持口算，我是速算小达人！'}”</span>
+                  </p>
+                </div>
+              </div>
 
+              {/* 快速设置按钮 */}
+              {onOpenSettings && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={onOpenSettings}
+                    className="px-3.5 py-2 rounded-2xl bg-white hover:bg-amber-50 text-amber-950 border border-amber-300 text-xs font-bold shadow-2xs hover:shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    title="调整我的专属个人口算设置"
+                  >
+                    <Settings className="w-3.5 h-3.5 text-amber-600" />
+                    <span>修改口算设置</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 当前口算配置标签栏 (实时同步显示：题量、运算、节奏、立式偏好、心愿奖励) */}
+            <div className="mt-4 pt-3.5 border-t border-amber-200/60 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="bg-white/80 rounded-xl px-3 py-2 border border-amber-100 flex items-center gap-2">
+                <span className="text-base">🔢</span>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-medium">每组练习题量</div>
+                  <div className="font-bold text-slate-800 font-mono">
+                    {student?.preferences?.questionCount || questionCount || 30} 题 / 组
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/80 rounded-xl px-3 py-2 border border-amber-100 flex items-center gap-2">
+                <span className="text-base">📐</span>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-medium">算式排版格式</div>
+                  <div className="font-bold text-slate-800">
+                    {student?.preferences?.equationLayout === 'horizontal'
+                      ? '横式优先'
+                      : student?.preferences?.equationLayout === 'auto'
+                      ? '智能自适应'
+                      : '竖式(立式)优先'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/80 rounded-xl px-3 py-2 border border-amber-100 flex items-center gap-2">
+                <span className="text-base">⏱️</span>
+                <div>
+                  <div className="text-[10px] text-slate-400 font-medium">单题建议节奏</div>
+                  <div className="font-bold text-slate-800">
+                    {student?.preferences?.perQuestionSeconds && student.preferences.perQuestionSeconds > 0
+                      ? `${student.preferences.perQuestionSeconds} 秒标准`
+                      : countdownDuration > 0
+                      ? `${countdownDuration} 秒标准`
+                      : '稳扎稳打 (不限时)'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/80 rounded-xl px-3 py-2 border border-amber-100 flex items-center gap-2">
+                <span className="text-base">🎯</span>
+                <div className="truncate">
+                  <div className="text-[10px] text-slate-400 font-medium">心愿大奖进度</div>
+                  <div className="font-bold text-amber-700 truncate" title={student?.rewardGoalTitle || '心愿大奖'}>
+                    ⭐ {student?.currentStars || 0}/{student?.rewardGoalStarsNeeded || 50}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 包含的运算类型小标 */}
+            <div className="mt-3 flex items-center gap-1.5 flex-wrap text-[11px] text-slate-500">
+              <span className="font-medium text-slate-400">当前激活运算:</span>
+              {(student?.preferences?.selectedOps || selectedOps || ['add', 'subtract', 'multiply', 'divide']).map(op => (
+                <span
+                  key={op}
+                  className="bg-amber-100/80 text-amber-900 font-bold px-2 py-0.5 rounded-lg border border-amber-200/50"
+                >
+                  {op === 'add' ? '➕ 加法' : op === 'subtract' ? '➖ 减法' : op === 'multiply' ? '✖️ 乘法' : '➗ 除法'}
+                </span>
+              ))}
+            </div>
+          </div>
 
           {/* 3 Primary Practice Mode Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -510,12 +662,12 @@ export const PracticeArena: React.FC<PracticeArenaProps> = ({
                 </div>
                 <h3 className="text-xl font-display font-bold">每日练习</h3>
                 <p className="text-xs text-amber-100 mt-1.5 leading-relaxed">
-                  基于你当前的学段难度（{student?.grade === 'grade1' ? '一年级' : student?.grade === 'grade2' ? '二年级' : '三年级+'}）与运算配置，轻松打卡练习。
+                  基于你当前的学段难度（{formatGradeLabel(student?.grade || grade)} · {formatGradeDetail(student?.grade || grade)}）与运算配置，轻松打卡练习。
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-white/20 flex items-center justify-between text-xs font-bold">
                 <span className="bg-white/25 px-2.5 py-1 rounded-xl">
-                  {student?.preferences?.questionCount || 30} 题 · 智能算式
+                  {student?.preferences?.questionCount || questionCount || 30} 题 · 智能算式
                 </span>
                 <span className="flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                   立即开始 <ChevronRight className="w-4 h-4" />

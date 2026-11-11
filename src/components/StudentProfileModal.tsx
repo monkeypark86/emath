@@ -66,7 +66,7 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   const [rewardTitleInput, setRewardTitleInput] = useState<string>('去游乐园玩');
   const [rewardStarsInput, setRewardStarsInput] = useState<number>(50);
 
-  // 每次打开弹窗时，确保从 localStorage 重新载入最新所有学生列表
+  // 每次打开弹窗或设置发生变更时，确保从 localStorage 重新载入最新所有学生列表
   React.useEffect(() => {
     if (isOpen) {
       setProfiles(getStudentProfiles());
@@ -74,6 +74,14 @@ export const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
       setEditingProfile(null);
     }
   }, [isOpen]);
+
+  React.useEffect(() => {
+    const handleSync = () => {
+      setProfiles(getStudentProfiles());
+    };
+    window.addEventListener('emath_student_profile_updated', handleSync);
+    return () => window.removeEventListener('emath_student_profile_updated', handleSync);
+  }, []);
 
   if (!isOpen) return null;
 

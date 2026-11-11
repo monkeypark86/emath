@@ -86,6 +86,30 @@ export function removeCustomManualQuestion(id: string): void {
   }
 }
 
+export function formatGradeLabel(grade?: GradeLevel): string {
+  switch (grade) {
+    case 'grade1': return '一年级';
+    case 'grade2': return '二年级';
+    case 'grade3': return '三年级';
+    case 'grade4': return '四年级';
+    case 'grade5_6': return '五/六年级';
+    case 'custom': return '自定义练习';
+    default: return '二年级';
+  }
+}
+
+export function formatGradeDetail(grade?: GradeLevel): string {
+  switch (grade) {
+    case 'grade1': return '20以内进退位加减';
+    case 'grade2': return '100以内&九九乘除';
+    case 'grade3': return '千以内乘除速算';
+    case 'grade4': return '多位数巧算简算';
+    case 'grade5_6': return '四则混合运算';
+    case 'custom': return '自选综合难度';
+    default: return '100以内&九九乘除';
+  }
+}
+
 export const DEFAULT_STUDENT_PREFERENCES: StudentPreferences = {
   equationLayout: 'vertical', // 算式默认立式(竖式)优先
   soundEnabled: true,
@@ -256,6 +280,9 @@ export function updateStudentProfile(profile: StudentProfile): void {
     profiles.push(normalized);
   }
   saveStudentProfiles(profiles);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('emath_student_profile_updated', { detail: normalized }));
+  }
 }
 
 export function deleteStudentProfile(id: string): void {

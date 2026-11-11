@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StudentProfile, StudentPreferences, GradeLevel, OperationType } from '../types/math';
-import { updateStudentProfile, DEFAULT_STUDENT_PREFERENCES } from '../utils/storage';
+import { updateStudentProfile, DEFAULT_STUDENT_PREFERENCES, formatGradeLabel } from '../utils/storage';
 import { sound } from '../utils/soundEffects';
 import confetti from 'canvas-confetti';
 import {
@@ -169,7 +169,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold font-display">{name} 的专属个人设置</h2>
                 <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-medium">
-                  {grade === 'grade1' ? '一年级' : grade === 'grade2' ? '二年级' : '三年级+'}
+                  {formatGradeLabel(grade)}
                 </span>
               </div>
               <p className="text-xs text-amber-100 mt-0.5 flex items-center gap-1.5">

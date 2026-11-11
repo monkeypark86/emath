@@ -29,7 +29,8 @@ import {
   seedSampleDataIfEmpty,
   getActiveStudent,
   setActiveStudentId,
-  updateStudentProfile
+  updateStudentProfile,
+  formatGradeLabel
 } from './utils/storage';
 import { generateQuestionBatchByRule } from './utils/mathGenerator';
 import { sound } from './utils/soundEffects';
@@ -54,6 +55,7 @@ export default function App() {
   // Student Settings Modal State
   const [isStudentSettingsOpen, setIsStudentSettingsOpen] = useState<boolean>(false);
   const [settingsTargetStudent, setSettingsTargetStudent] = useState<StudentProfile | null>(null);
+  const [profileVersion, setProfileVersion] = useState<number>(0);
 
   // Practice state
   const [practiceQuestions, setPracticeQuestions] = useState<MathQuestion[] | undefined>(undefined);
@@ -83,7 +85,8 @@ export default function App() {
     setActiveStudentId(student.id);
     localStorage.setItem('math_chosen_student_confirmed_v1', 'true');
     const fresh = getActiveStudent();
-    setActiveStudent(fresh);
+    setActiveStudent({ ...fresh });
+    setProfileVersion(prev => prev + 1);
     refreshMistakeCount();
     showToast(`🎉 已成功登录：${fresh.avatar} ${fresh.name} 同学的口算专属档案！`);
   };
@@ -97,8 +100,10 @@ export default function App() {
     updateStudentProfile(updated);
     if (updated.id === activeStudent.id) {
       setActiveStudentId(updated.id);
-      setActiveStudent(getActiveStudent());
+      const fresh = getActiveStudent();
+      setActiveStudent({ ...fresh });
     }
+    setProfileVersion(prev => prev + 1);
     showToast(`✅ 已更新 ${updated.name} 的专属个人设置！`);
   };
 
@@ -217,8 +222,8 @@ export default function App() {
                 <div className="flex flex-col text-left">
                   <div className="flex items-center gap-1.5 leading-tight">
                     <span className="font-bold text-xs text-slate-900">{activeStudent.name}</span>
-                    <span className="text-[10px] text-amber-700 bg-amber-200/80 px-1 py-0.2 rounded font-medium">
-                      {activeStudent.grade === 'grade1' ? '一年级' : activeStudent.grade === 'grade2' ? '二年级' : '三年级+'}
+                    <span className="text-[10px] text-amber-700 bg-amber-200/80 px-1.5 py-0.5 rounded font-medium">
+                      {formatGradeLabel(activeStudent.grade)}
                     </span>
                   </div>
                   <span className="text-[10px] text-amber-600 font-semibold leading-tight flex items-center gap-0.5 mt-0.5">
@@ -262,7 +267,7 @@ export default function App() {
       <main className={`flex-1 ${isPracticingActive ? 'py-0 flex flex-col items-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]' : ''}`}>
         {currentTab === 'practice' && (
           <PracticeArena
-            key={activeStudent.id + '_' + (activeStudent.preferences?.equationLayout || '') + '_' + (activeStudent.preferences?.fontSizeScale || '')}
+            key={`${activeStudent.id}_${activeStudent.lastActiveAt || 0}_${activeStudent.grade}_${JSON.stringify(activeStudent.preferences || {})}`}
             defaultGrade={activeStudent.grade}
             student={activeStudent}
             onOpenSettings={() => handleOpenStudentSettings(activeStudent)}
@@ -396,6 +401,7 @@ export default function App() {
 
       {/* Student Profile Switcher & Login Modal (首页先让用户选择2学生/多学生登录) */}
       <StudentProfileModal
+        key={`${activeStudent.id}_${profileVersion}`}
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         currentStudentId={activeStudent.id}
