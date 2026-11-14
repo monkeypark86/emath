@@ -874,9 +874,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
       {/* Settings Modal */}
       {isEditingSettings && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-slate-900 mb-1">{t('家长设定学习目标与心愿奖励', 'Set Goals & Wish Rewards')}</h2>
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-xl max-h-full overflow-y-auto">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-1">{t('家长设定学习目标与心愿奖励', 'Set Goals & Wish Rewards')}</h2>
             <p className="text-xs text-slate-500 mb-4">
               {t('设置合理的每日目标与正向激励，激发孩子的数学口算自信心。', 'Set realistic daily goals and positive rewards to build your child\'s math confidence.')}
             </p>

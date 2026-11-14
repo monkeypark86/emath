@@ -192,25 +192,25 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
   const allProfiles = getStudentProfiles();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-2xl rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-full sm:max-h-[92vh] overflow-hidden">
         {/* Modal Header */}
-        <div className="px-6 py-4.5 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-3xl shadow-inner shrink-0">
+        <div className="px-4 py-3 sm:px-6 sm:py-4.5 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl sm:text-3xl shadow-inner shrink-0">
               {avatar}
             </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg sm:text-xl font-bold font-display">{t(`${name} 的口算专属设置`, `${name}'s Settings`)}</h2>
-                <span className="text-xs bg-white/25 px-2.5 py-0.5 rounded-full font-bold">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h2 className="text-base sm:text-xl font-bold font-display truncate max-w-full">{t(`${name} 的口算专属设置`, `${name}'s Settings`)}</h2>
+                <span className="text-[11px] sm:text-xs bg-white/25 px-2 sm:px-2.5 py-0.5 rounded-full font-bold whitespace-nowrap">
                   {formatGradeLabel(grade)}
                 </span>
-                <span className="text-[11px] bg-white/15 px-2 py-0.5 rounded-full font-medium">
+                <span className="hidden xs:inline-block sm:inline-block text-[11px] bg-white/15 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
                   {formatGradeDetail(grade)}
                 </span>
               </div>
-              <p className="text-xs text-amber-100 mt-0.5 flex items-center gap-1.5 line-clamp-1">
+              <p className="text-[11px] sm:text-xs text-amber-100 mt-0.5 flex items-center gap-1.5 min-w-0">
                 <Sparkles className="w-3.5 h-3.5 text-amber-200 shrink-0" />
                 <span className="truncate">{t('自定义学段难度、立式竖式格式、答题节奏与激励心愿', 'Customize grade level, equation layout, pace and rewards')}</span>
               </p>
@@ -219,7 +219,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors cursor-pointer shrink-0"
             title={t('关闭设置', 'Close settings')}
           >
             <X className="w-5 h-5" />
@@ -227,61 +227,61 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
         </div>
 
         {/* 重新规划的三大逻辑 Menu 选项卡 */}
-        <div className="flex border-b border-slate-200/80 bg-slate-50/90 px-6 gap-2 pt-2">
+        <div className="grid grid-cols-3 sm:flex border-b border-slate-200/80 bg-slate-50/90 px-2 sm:px-6 gap-1 sm:gap-2 pt-2 shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab('rules')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1.5 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-sm font-bold rounded-t-xl transition-all border-b-2 cursor-pointer min-w-0 ${
               activeTab === 'rules'
                 ? 'bg-white border-amber-500 text-amber-950 shadow-xs'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <BookOpen className="w-4 h-4 text-amber-500" />
-            <span className="whitespace-nowrap">{t('口算模式与规则', 'Practice Rules')}</span>
+            <BookOpen className="w-4 h-4 text-amber-500 shrink-0" />
+            <span className="truncate max-w-full sm:whitespace-nowrap">{t('口算模式与规则', 'Practice Rules')}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('display')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1.5 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-sm font-bold rounded-t-xl transition-all border-b-2 cursor-pointer min-w-0 ${
               activeTab === 'display'
                 ? 'bg-white border-amber-500 text-amber-950 shadow-xs'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Palette className="w-4 h-4 text-amber-500" />
-            <span className="whitespace-nowrap">{t('视听与界面偏好', 'Display')}</span>
+            <Palette className="w-4 h-4 text-amber-500 shrink-0" />
+            <span className="truncate max-w-full sm:whitespace-nowrap">{t('视听与界面偏好', 'Display')}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+            className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1.5 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-sm font-bold rounded-t-xl transition-all border-b-2 cursor-pointer min-w-0 ${
               activeTab === 'profile'
                 ? 'bg-white border-amber-500 text-amber-950 shadow-xs'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Award className="w-4 h-4 text-amber-500" />
-            <span className="whitespace-nowrap">{t('档案与心愿激励', 'Profile')}</span>
+            <Award className="w-4 h-4 text-amber-500 shrink-0" />
+            <span className="truncate max-w-full sm:whitespace-nowrap">{t('档案与心愿激励', 'Profile')}</span>
           </button>
         </div>
 
         {/* Tab 内容区 */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-5 sm:space-y-6">
           {/* TAB 1: 📘 口算模式与规则 */}
           {activeTab === 'rules' && (
             <div className="space-y-6">
               {/* 1. 学段难度选择 */}
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-800 mb-2 flex items-center justify-between flex-wrap gap-1">
                   <span>{t('就读年级与学段难度', 'Grade & Difficulty')}</span>
                   <span className="text-xs text-amber-600 font-semibold">
                     {t('当前选择：', 'Selected: ')}{formatGradeLabel(grade)}
                   </span>
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
                   {[
                     { id: 'grade1' as const, label: t('一年级', 'Grade 1'), desc: t('20以内进退位·凑十破十', 'Within 20 · make/break ten') },
                     { id: 'grade2' as const, label: t('二年级', 'Grade 2'), desc: t('100以内加减·表内九九乘除', '± within 100 · times tables') },
@@ -312,11 +312,11 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
 
               {/* 2. 包含的运算类型 (可多选) */}
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-800 mb-1.5 flex items-center justify-between flex-wrap gap-1">
                   <span>{t('包含的运算类型（多选）', 'Operations (multi-select)')}</span>
                   <span className="text-xs text-slate-400">{t(`已激活 ${selectedOps.length} 种运算`, `${selectedOps.length} active`)}</span>
                 </label>
-                <div className="grid grid-cols-4 gap-2.5">
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
                   {[
                     { op: 'add' as OperationType, sym: '+', name: t('加法', 'Add'), desc: t('正向聚合', 'Combine') },
                     { op: 'subtract' as OperationType, sym: '-', name: t('减法', 'Subtract'), desc: t('退位反向', 'Take away') },
@@ -329,14 +329,14 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                         key={item.op}
                         type="button"
                         onClick={() => toggleOp(item.op)}
-                        className={`py-3 px-2 rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer ${
+                        className={`py-2.5 sm:py-3 px-1.5 sm:px-2 rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer ${
                           active
                             ? 'border-amber-500 bg-amber-500 text-white shadow-xs font-bold scale-[1.02]'
                             : 'border-slate-200 text-slate-600 hover:bg-slate-50 bg-white'
                         }`}
                       >
                         <span className="font-mono font-black text-xl mb-0.5">{item.sym}</span>
-                        <span className="text-xs truncate max-w-full">{item.name}</span>
+                        <span className="text-[11px] sm:text-xs truncate max-w-full">{item.name}</span>
                       </button>
                     );
                   })}
@@ -348,7 +348,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                 <label className="block text-sm font-bold text-slate-800 mb-2">
                   {t('每轮挑战练习题量', 'Questions per round')}
                 </label>
-                <div className="grid grid-cols-4 gap-2.5">
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
                   {[
                     { cnt: 10, label: t('10 题', '10 Qs'), desc: t('轻松快练', 'Quick') },
                     { cnt: 15, label: t('15 题', '15 Qs'), desc: t('课标推荐', 'Standard') },
@@ -359,13 +359,13 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                       key={item.cnt}
                       type="button"
                       onClick={() => setQuestionCount(item.cnt)}
-                      className={`py-2.5 px-2 rounded-2xl border-2 text-center transition-all cursor-pointer ${
+                      className={`py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-2xl border-2 text-center transition-all cursor-pointer ${
                         questionCount === item.cnt
                           ? 'border-amber-500 bg-amber-50 font-bold text-amber-950 shadow-xs'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                       }`}
                     >
-                      <div className="text-sm sm:text-base font-bold font-mono">{item.label}</div>
+                      <div className="text-xs sm:text-base font-bold font-mono">{item.label}</div>
                       <div className="text-[10px] text-slate-400 mt-0.5 truncate">{item.desc}</div>
                     </button>
                   ))}
@@ -374,7 +374,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
 
               {/* 4. 算式排版格式偏好 */}
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-800 mb-2 flex items-center justify-between flex-wrap gap-1">
                   <span>{t('算式显示格式偏好', 'Equation layout')}</span>
                   <span className="text-xs text-amber-600 font-semibold">{t('强烈推荐竖式立式', 'Vertical recommended')}</span>
                 </label>
@@ -452,7 +452,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
 
               {/* 5. 单题建议时限节奏 */}
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-800 mb-2 flex items-center justify-between flex-wrap gap-1">
                   <span>{t('单题作答建议时限（均速基准）', 'Time per question (target pace)')}</span>
                   <span className="text-xs text-slate-400">{t('训练中隐藏倒计时数字，避免孩子焦虑', 'Countdown hidden to avoid stress')}</span>
                 </label>
@@ -487,37 +487,37 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
 
           {/* TAB 2: 🎨 视听与界面偏好 */}
           {activeTab === 'display' && (
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               {/* 1. 字号大小选择 */}
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-800 mb-2 flex items-center justify-between flex-wrap gap-1">
                   <span>{t('护眼字号放大缩放', 'Eye-friendly font size')}</span>
                   <span className="text-xs text-slate-400">{t('关爱小学生视力发育', 'Protect young eyes')}</span>
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {[
-                    { id: 'normal' as const, label: t('标准舒适', 'Standard'), desc: t('100% 紧凑舒适', '100% compact'), sample: 'text-lg' },
-                    { id: 'large' as const, label: t('护眼放大', 'Large'), desc: t('120% 清晰防疲劳', '120% clearer'), sample: 'text-xl font-bold' },
-                    { id: 'xl' as const, label: t('超大字号', 'X-Large'), desc: t('140% 低年级专享', '140% young kids'), sample: 'text-2xl font-black' }
+                    { id: 'normal' as const, label: t('标准舒适', 'Standard'), desc: t('100% 紧凑舒适', '100% compact'), sample: 'text-base sm:text-lg' },
+                    { id: 'large' as const, label: t('护眼放大', 'Large'), desc: t('120% 清晰防疲劳', '120% clearer'), sample: 'text-lg sm:text-xl font-bold' },
+                    { id: 'xl' as const, label: t('超大字号', 'X-Large'), desc: t('140% 低年级专享', '140% young kids'), sample: 'text-xl sm:text-2xl font-black' }
                   ].map(item => (
                     <button
                       key={item.id}
                       type="button"
                       onClick={() => setFontSizeScale(item.id)}
-                      className={`p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                      className={`p-2.5 sm:p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                         fontSizeScale === item.id
                           ? 'border-amber-500 bg-amber-50/70 shadow-xs ring-2 ring-amber-400/20'
                           : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center justify-between gap-1 mb-1">
                         <span className="font-bold text-xs text-slate-800 truncate">{item.label}</span>
-                        {fontSizeScale === item.id && <Check className="w-3.5 h-3.5 text-amber-600" />}
+                        {fontSizeScale === item.id && <Check className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
                       </div>
-                      <div className={`font-mono text-slate-900 my-1 ${item.sample}`}>
+                      <div className={`font-mono text-slate-900 my-1 whitespace-nowrap ${item.sample}`}>
                         18 + 7
                       </div>
-                      <p className="text-[10px] text-slate-400">{item.desc}</p>
+                      <p className="text-[10px] text-slate-400 leading-tight">{item.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -564,12 +564,12 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
 
               {/* 3. 辅助功能与开关 */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
                       <Zap className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold text-slate-800">{t('输入答案位数匹配时自动提交', 'Auto-submit when digits are complete')}</div>
                       <div className="text-[10px] text-slate-500">
                         {t('无需每次点击确认按键，输满正确位数自动判定，适合触屏设备', 'No need to tap confirm; checks automatically. Great for touch screens')}
@@ -579,7 +579,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setAutoSubmitWhenComplete(!autoSubmitWhenComplete)}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer shrink-0 ${
                       autoSubmitWhenComplete ? 'bg-amber-500' : 'bg-slate-300'
                     }`}
                   >
@@ -591,12 +591,12 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
                       <Volume2 className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold text-slate-800">{t('答题正误语音与音效', 'Answer sound effects')}</div>
                       <div className="text-[10px] text-slate-500">
                         {t('答对清脆叮咚声，答错温柔提示声', 'Cheerful chime when right, gentle tone when wrong')}
@@ -606,7 +606,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setSoundEnabled(!soundEnabled)}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer shrink-0 ${
                       soundEnabled ? 'bg-amber-500' : 'bg-slate-300'
                     }`}
                   >
@@ -618,12 +618,12 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+                <div className="flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
                       <Sparkles className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold text-slate-800">{t('连击成就满分彩带礼花动效', 'Confetti celebrations')}</div>
                       <div className="text-[10px] text-slate-500">
                         {t('通关与连击达成时燃放炫彩礼花，激发学习兴趣', 'Confetti on streaks and completed rounds to keep kids motivated')}
@@ -633,7 +633,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setCelebrationConfetti(!celebrationConfetti)}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer shrink-0 ${
                       celebrationConfetti ? 'bg-amber-500' : 'bg-slate-300'
                     }`}
                   >
@@ -651,19 +651,19 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                 <label className="block text-sm font-bold text-slate-800 mb-2">
                   {t('个人专属界面主题色调', 'Theme color')}
                 </label>
-                <div className="grid grid-cols-5 gap-2.5">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-2.5">
                   {THEME_OPTIONS.map(theme => (
                     <button
                       key={theme.id}
                       type="button"
                       onClick={() => setThemeColor(theme.id)}
-                      className={`py-2 px-3 rounded-2xl border-2 flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      className={`py-2 px-2 sm:px-3 rounded-2xl border-2 flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                         themeColor === theme.id
                           ? 'border-slate-900 bg-slate-900 text-white font-bold shadow-xs'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                       }`}
                     >
-                      <span className={`w-3 h-3 rounded-full ${theme.bgClass}`} />
+                      <span className={`w-3 h-3 rounded-full shrink-0 ${theme.bgClass}`} />
                       <span className="text-xs min-w-0 truncate">{theme.label}</span>
                     </button>
                   ))}
@@ -753,10 +753,10 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
               </div>
 
               {/* 4. 心愿大奖设置 */}
-              <div className="bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white border border-amber-200/90 rounded-2xl p-4 shadow-2xs">
-                <div className="flex items-center justify-between mb-3">
+              <div className="bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-white border border-amber-200/90 rounded-2xl p-3.5 sm:p-4 shadow-2xs">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                   <div className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-amber-600" />
+                    <Award className="w-5 h-5 text-amber-600 shrink-0" />
                     <span className="text-sm font-bold text-amber-950">{t('心愿大奖激励计划', 'Reward Plan')}</span>
                   </div>
                   <span className="text-xs text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full font-bold whitespace-nowrap">
@@ -824,7 +824,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-2">
                     {t('每日口算打卡目标题量', 'Daily goal (questions)')}
                   </label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                     {[10, 15, 20, 30].map(count => (
                       <button
                         key={count}
@@ -836,7 +836,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                             : 'border-slate-200 bg-white text-slate-700'
                         }`}
                       >
-                        <span className="text-sm font-mono">{t(`${count}题`, `${count}`)}</span>
+                        <span className="text-xs sm:text-sm font-mono">{t(`${count}题`, `${count}`)}</span>
                       </button>
                     ))}
                   </div>
@@ -846,7 +846,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-2">
                     {t('达标正确率要求', 'Target accuracy')}
                   </label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                     {[80, 85, 90, 95].map(acc => (
                       <button
                         key={acc}
@@ -858,7 +858,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
                             : 'border-slate-200 bg-white text-slate-700'
                         }`}
                       >
-                        <span className="text-sm font-mono">≥{acc}%</span>
+                        <span className="text-xs sm:text-sm font-mono">≥{acc}%</span>
                       </button>
                     ))}
                   </div>
@@ -869,11 +869,11 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
         </div>
 
         {/* Modal 底部操作栏 */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between shrink-0">
+        <div className="px-4 py-3 sm:px-6 sm:py-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between shrink-0">
           <div className="text-xs text-slate-400 hidden sm:block">
             {t('设置将自动保存在当前设备，即刻在练习与错题集中生效', 'Saved on this device and applied instantly')}
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={onClose}
@@ -884,7 +884,7 @@ export const StudentSettingsModal: React.FC<StudentSettingsModalProps> = ({
             <button
               type="button"
               onClick={handleSaveAll}
-              className="px-6 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+              className="px-5 sm:px-6 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
             >
               <Check className="w-4 h-4" />
               <span className="whitespace-nowrap">{t('保存并应用设置', 'Save & Apply')}</span>
